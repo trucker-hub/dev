@@ -23,6 +23,7 @@ import admin from './admin';
 import navbar from '../components/navbar/navbar.component';
 import footer from '../components/footer/footer.component';
 import quoting from './quoting/quoting.component';
+import emails from './emails-stats/emails-stats.component';
 import main from './main/main.component';
 import constants from './app.constants';
 import util from '../components/util/util.module';
@@ -31,7 +32,7 @@ import socket from '../components/socket/socket.service';
 import './app.css';
 
 angular.module('truckingHubApp', [ngCookies, ngResource, ngSanitize, 'btford.socket-io', ngRoute,
-  uiBootstrap, _Auth, account, admin, quoting, navbar, footer, main, constants, socket, util
+  uiBootstrap, _Auth, account, admin, quoting, emails, navbar, footer, main, constants, socket, util
 ])
   .config(routeConfig)
   .run(function($rootScope, $location, Auth) {

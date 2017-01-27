@@ -4,13 +4,18 @@
 import angular from 'angular';
 
 export class NavbarComponent {
-  menu = [{
-    title: 'Home',
-    link: '/'
-  },
+  menu = [
+    {
+      title: 'Home',
+      link: '/'
+    },
     {
       title: 'Quoting',
       link: '/quoting'
+    },
+    {
+      title: 'Email Stats',
+      link: '/emails-stats'
     }
   ];
 
