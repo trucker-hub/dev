@@ -11,8 +11,11 @@
 'use strict';
 
 import jsonpatch from 'fast-json-patch';
+const util = require('util');
 import EmailsMining from './emails-mining.model';
 import MailListener from 'mail-listener2';
+const simpleParser = require('@nodemailer/mailparser2').simpleParser;
+
 
 var mailListener = new MailListener({
   username: "jinbo.chen@gmail.com",
@@ -153,11 +156,18 @@ mailListener.on("error", function(err){
   console.log(err);
 });
 
-mailListener.on("mail", function(mail, seqno, attributes){
+mailListener.on("mail", function(input, seqno, attributes){
   // do something with mail object including attachments
   console.log("mail received!");
-  console.log("emailParsed", mail);
+  console.log("emailParsed", input);
   // mail processing code goes here
+
+  simpleParser(input).then(mail => {
+    console.log(util.inspect(mail, false, 22));
+  }).catch (err => {
+    console.log(err);
+  });
+
 });
 
 mailListener.on("attachment", function(attachment){
