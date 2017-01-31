@@ -13,28 +13,8 @@
 import jsonpatch from 'fast-json-patch';
 const util = require('util');
 import EmailsMining from './emails-mining.model';
-import MailListener from 'mail-listener2';
-const simpleParser = require('@nodemailer/mailparser2').simpleParser;
+import mailListener from '../../components/imap';
 
-
-var mailListener = new MailListener({
-  username: "jinbo.chen@gmail.com",
-  password: "chunfeng2",
-  host: "imap.gmail.com",
-  port: 993, // imap port
-  tls: true,
-  connTimeout: 10000, // Default by node-imap
-  authTimeout: 5000, // Default by node-imap,
-  debug: console.log, // Or your custom function with only one incoming argument. Default: null
-  tlsOptions: { rejectUnauthorized: false },
-  mailbox: "Inbox", // mailbox to monitor
-  searchFilter: ["UNSEEN"], // the search filter being used after an IDLE notification has been retrieved
-  markSeen: false, // all fetched email willbe marked as seen and not fetched next time
-  fetchUnreadOnStart: false, // use it only if you want to get all unread email on lib start. Default is `false`,
-  mailParserOptions: {streamAttachments: true}, // options to be passed to mailParser lib.
-  attachments: false, // download attachments as they are encountered to the project directory
-  attachmentOptions: { directory: "attachments/" } // specify a download directory for attachments
-});
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -139,38 +119,14 @@ export function destroy(req, res) {
     .catch(handleError(res));
 }
 
-mailListener.start(); // start listening
-
-// stop listening
-//mailListener.stop();
-
-mailListener.on("server:connected", function(){
-  console.log("imapConnected");
-});
-
-mailListener.on("server:disconnected", function(){
-  console.log("imapDisconnected");
-});
-
-mailListener.on("error", function(err){
-  console.log(err);
-});
-
-mailListener.on("mail", function(input, seqno, attributes){
-  // do something with mail object including attachments
-  console.log("mail received!");
-  console.log("emailParsed", input);
-  // mail processing code goes here
-
-  simpleParser(input).then(mail => {
-    console.log(util.inspect(mail, false, 22));
-  }).catch (err => {
-    console.log(err);
+export function start(req, res) {
+  mailListener.start(function(email) {
+    console.log("received email=", email.subject);
   });
+}
 
-});
+export function stop(req, res) {
+  mailListener.stop();
+}
 
-mailListener.on("attachment", function(attachment){
-  console.log("attachment received!");
-  console.log(attachment.path);
-});
+

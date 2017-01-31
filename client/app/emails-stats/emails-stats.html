@@ -1,5 +1,23 @@
 <div class="container">
-  <div>This is the emails-stats view.</div>
-  <p class="test-css">italics text displays here</p>
+  <div class="col-lg-12">
+      <div class="col-md-4 col-lg-4 col-sm-6" ng-hide="emailsStatsCtrl.monitoring">
+        <button class="btn btn-primary" ng-click="emailsStatsCtrl.startMonitoring()">Start Monitoring</button>
+      </div>
+      <div class="col-md-4 col-lg-4 col-sm-6" ng-hide="!emailsStatsCtrl.monitoring">
+        <button class="btn btn-primary" ng-click="emailsStatsCtrl.stopMonitoring()">Stop Monitoring</button>
+      </div>
+
+      <div class="col-md-4 col-lg-4 col-sm-6">
+        <button class="btn btn-primary" ng-click="emailsStatsCtrl.getEmails()">Getting Emails</button>
+      </div>
+  </div>
+
+  <div class="col-lg-12">
+    <h1 class="page-header">Emails:</h1>
+    <ul class="nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6" ng-repeat="email in emailsStatsCtrl.emails">
+      <li>{{email.subject}}</li>
+    </ul>
+  </div>
+
 </div>
 

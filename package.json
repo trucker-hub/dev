@@ -3,7 +3,6 @@
   "version": "0.0.0",
   "main": "server/index.js",
   "dependencies": {
-    "@nodemailer/mailparser2": "^1.0.3",
     "angular": "~1.6.0",
     "angular-animate": "~1.6.0",
     "angular-aria": "~1.6.0",
