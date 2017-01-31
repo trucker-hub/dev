@@ -16,6 +16,15 @@ import EmailsMining from './emails-mining.model';
 import mailListener from '../../components/imap';
 
 
+var saveEmail = function(parsedEmail, res) {
+
+  return EmailsMining.create(parsedEmail)
+      .then(respondWithResult(res, 201))
+      .catch(handleError(res));
+
+
+};
+
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
   return function(entity) {
@@ -83,9 +92,9 @@ export function show(req, res) {
 
 // Creates a new EmailsMining in the DB
 export function create(req, res) {
-  return EmailsMining.create(req.body)
-    .then(respondWithResult(res, 201))
-    .catch(handleError(res));
+  return EmailsMining.create(parsedEmail)
+      .then(respondWithResult(res, 201))
+      .catch(handleError(res));
 }
 
 // Upserts the given EmailsMining in the DB at the specified ID
@@ -120,13 +129,22 @@ export function destroy(req, res) {
 }
 
 export function start(req, res) {
-  mailListener.start(function(email) {
+  mailListener.start(function (email) {
     console.log("received email=", email.subject);
+    EmailsMining.create(email).then(
+        function () {
+          console.log("save email=", email.subject);
+        })
+        .catch(function () {
+          console.log("save email failed");
+        });
   });
+  return res.status(200).send('triggered email monitoring');
 }
 
 export function stop(req, res) {
   mailListener.stop();
+  return res.status(200).send('triggered stopping email monitoring');
 }
 
 
