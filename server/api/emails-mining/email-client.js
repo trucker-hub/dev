@@ -4,9 +4,11 @@
 'use strict';
 
 const util = require('util');
-const mailListener = require('../../components/imap');
+const listener = require('../../components/imap');
 
-mailListener.start(function (email) {
+//listener.init("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox");
+listener.init("lan@cc-chb.com", "edcrfv9111", "imap.secureserver.net", 993, "Inbox");
+listener.start(function (email) {
     console.log("from", email.from);
     console.log("to", email.to);
     console.log("subject", email.subject);

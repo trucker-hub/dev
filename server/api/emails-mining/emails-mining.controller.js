@@ -129,6 +129,7 @@ export function destroy(req, res) {
 }
 
 export function start(req, res) {
+  mailListener.init("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox");
   mailListener.start(function (email) {
     console.log("received email=", email.subject);
     EmailsMining.create(email).then(

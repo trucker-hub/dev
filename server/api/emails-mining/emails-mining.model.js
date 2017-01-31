@@ -15,14 +15,15 @@ var EmailsMiningSchema = new mongoose.Schema({
   cc: [ addressSchema ],
   bcc:[ addressSchema ],
   date: Date,
+  receivedDate: Date,
   messageId: String,
-  inReplyTo: String,
+  inReplyTo: [String],
   replyTo: String,
   references: [String],
   priority: { type: String, enum: [ 'high', 'normal', 'low' ], default: 'normal'},
   text: String,
   html: String,
-  attachments: [ { type:String, size: Number} ],
+  attachments: [ { name: String, type:String, size: Number} ],
   active: Boolean
 });
 
