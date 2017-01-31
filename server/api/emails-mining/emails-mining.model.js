@@ -8,14 +8,14 @@ var addressSchema = {
 };
 
 var EmailsMiningSchema = new mongoose.Schema({
-  from: addressSchema,
+  from: [ addressSchema ],
   subject: String,
   headers : [ {key: String, value: String} ],
   to: [ addressSchema ],
   cc: [ addressSchema ],
   bcc:[ addressSchema ],
   date: Date,
-  messageID: String,
+  messageId: String,
   inReplyTo: String,
   replyTo: String,
   references: [String],
@@ -26,4 +26,4 @@ var EmailsMiningSchema = new mongoose.Schema({
   active: Boolean
 });
 
-export default mongoose.model('EmailsMining', EmailsMiningSchema);
+export default mongoose.model('Email', EmailsMiningSchema);

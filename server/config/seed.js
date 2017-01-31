@@ -6,6 +6,7 @@
 'use strict';
 import Thing from '../api/thing/thing.model';
 import User from '../api/user/user.model';
+import Email from '../api/emails-mining/emails-mining.model';
 
 Thing.find({}).remove()
   .then(() => {
@@ -57,3 +58,7 @@ User.find({}).remove()
       console.log('finished populating users');
     });
   });
+
+Email.find({}).remove().then(() => {
+  console.log('removed old emails');
+});

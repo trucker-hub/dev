@@ -14,9 +14,28 @@
 
   <div class="col-lg-12">
     <h1 class="page-header">Emails:</h1>
-    <ul class="nav nav-tabs nav-stacked col-md-4 col-lg-4 col-sm-6" ng-repeat="email in emailsStatsCtrl.emails">
-      <li>{{email.subject}}</li>
-    </ul>
+    <table class="table table-striped">
+
+      <tr>
+        <th>Subject</th>
+        <th>Date</th>
+        <th>From</th>
+        <th>To</th>
+        <th>CC</th>
+        <th>References</th>
+        <th>ID</th>
+      </tr>
+      <tr ng-repeat="email in emailsStatsCtrl.emails">
+        <td>{{email.subject}}</td>
+        <td>{{email.date | date:'MM/dd/yyyy' }}</td>
+        <td>{{email.from}}</td>
+        <td>{{email.to}}</td>
+        <td>{{email.cc}}</td>
+        <td>{{email.references}}</td>
+        <td>{{email.messageId}}</td>
+      </tr>
+    </table>
+
   </div>
 
 </div>
