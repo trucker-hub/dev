@@ -13,8 +13,11 @@
 import jsonpatch from 'fast-json-patch';
 const util = require('util');
 import EmailsMining from './emails-mining.model';
-import mailListener from '../../components/imap';
+import MailListener from '../../components/imap';
 
+
+var mailListenerInbox;
+var mailListenerSent;
 
 var saveEmail = function(parsedEmail, res) {
 
@@ -129,8 +132,9 @@ export function destroy(req, res) {
 }
 
 export function start(req, res) {
-  mailListener.init("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox");
-  mailListener.start(function (email) {
+
+  mailListenerInbox = MailListener.createListener("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox", ["UNSEEN"]);
+  MailListener.startListener(mailListenerInbox, function (email) {
     console.log("received email=", email.subject);
     EmailsMining.create(email).then(
         function () {
@@ -144,7 +148,7 @@ export function start(req, res) {
 }
 
 export function stop(req, res) {
-  mailListener.stop();
+  MailListener.stopListener(mailListenerInbox);
   return res.status(200).send('triggered stopping email monitoring');
 }
 

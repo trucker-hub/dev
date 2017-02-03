@@ -4,13 +4,20 @@
 'use strict';
 
 const util = require('util');
-const listener = require('../../components/imap');
+const Listener = require('../../components/imap');
 
 //listener.init("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox");
-listener.init("lan@cc-chb.com", "edcrfv9111", "imap.secureserver.net", 993, "Inbox");
-listener.start(function (email) {
-    console.log("from", email.from);
-    console.log("to", email.to);
-    console.log("subject", email.subject);
-    console.log(util.inspect(email, {depth: null, colors: true}));
+var listener1 = Listener.createListener("lan@cc-chb.com", "edcrfv9111", "imap.secureserver.net", 993,
+  "Inbox", ["UNSEEN"]);
+var listener2 = Listener.createListener("lan@cc-chb.com", "edcrfv9111", "imap.secureserver.net", 993,
+  "Sent Items", ["ALL", ['SINCE', 'Feb 1, 2017']]);
+
+Listener.startListener(listener1, function (email) {
+    console.log("INBOX EMAIL from", email.from, email.subject);
+    //console.log(util.inspect(email, {depth: null, colors: true}));
+});
+
+Listener.startListener(listener2, function (email) {
+  console.log("Sent Box EMAIL from", email.to, email.subject);
+  //console.log(util.inspect(email, {depth: null, colors: true}));
 });

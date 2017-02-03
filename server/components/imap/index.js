@@ -24,8 +24,8 @@ var listener;
 
 module.exports =  {
 
-  init: function(username, password, host, port, mailbox) {
-    listener= new MailListener({
+  createListener: function(username, password, host, port, mailbox, filter) {
+    return new MailListener({
       username: username,
       password: password,
       host: host,
@@ -33,10 +33,10 @@ module.exports =  {
       tls: true,
       connTimeout: 10000, // Default by node-imap
       authTimeout: 5000, // Default by node-imap,
-      debug: console.log, // Or your custom function with only one incoming argument. Default: null
+      debug: null, //console.log, // Or your custom function with only one incoming argument. Default: null
       tlsOptions: { rejectUnauthorized: false },
       mailbox: mailbox, // mailbox to monitor
-      searchFilter: ["UNSEEN", "UNANSWERED"], // the search filter being used after an IDLE notification has been retrieved
+      searchFilter: filter, // the search filter being used after an IDLE notification has been retrieved
       markSeen: false, // all fetched email willbe marked as seen and not fetched next time
       fetchUnreadOnStart: false, // use it only if you want to get all unread email on lib start. Default is `false`,
       mailParserOptions: { streamAttachments: true }, // options to be passed to mailParser lib.
@@ -45,7 +45,7 @@ module.exports =  {
     });
   },
 
-  start : function(callback) {
+  startListener : function(listener, callback) {
     listener.start(); // start listening
 
     listener.on("server:connected", function(){
@@ -92,8 +92,9 @@ module.exports =  {
     listener.on("attachment", function(attachment){
       console.log("attachment received!");
     });
+
   },
-  stop: function() {
+  stopListener: function(listener) {
     // stop listening
     listener.stop();
   }
