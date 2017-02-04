@@ -19,15 +19,6 @@ import MailListener from '../../components/imap';
 var mailListenerInbox;
 var mailListenerSent;
 
-var saveEmail = function(parsedEmail, res) {
-
-  return EmailsMining.create(parsedEmail)
-      .then(respondWithResult(res, 201))
-      .catch(handleError(res));
-
-
-};
-
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
   return function(entity) {
@@ -131,20 +122,27 @@ export function destroy(req, res) {
     .catch(handleError(res));
 }
 
+var saveEmail = function(email) {
+  return EmailsMining.findOneAndUpdate({messageId: email.messageId}, email,
+    {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true}).exec()
+    .then(function() {
+      console.log("email has been saved");
+    })
+    .catch(function() {
+      console.log("saving failed");
+    });
+};
 export function start(req, res) {
 
   mailListenerInbox = MailListener.createListener("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox", ["UNSEEN"]);
-  MailListener.startListener(mailListenerInbox, function (email) {
+  MailListener.startListener(mailListenerInbox, true, function (email) {
     console.log("received email=", email.subject);
-    EmailsMining.create(email).then(
-        function () {
-          console.log("save email=", email.subject);
-        })
-        .catch(function () {
-          console.log("save email failed");
-        });
+    saveEmail(email);
+  }).then(function() {
+    console.log("started listener");
   });
   return res.status(200).send('triggered email monitoring');
+
 }
 
 export function stop(req, res) {

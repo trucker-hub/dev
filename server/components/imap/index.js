@@ -24,7 +24,7 @@ var listener;
 
 module.exports =  {
 
-  createListener: function(username, password, host, port, mailbox, filter) {
+  createListener: function(username, password, host, port, mailbox, filter, debug = false) {
     return new MailListener({
       username: username,
       password: password,
@@ -33,7 +33,7 @@ module.exports =  {
       tls: true,
       connTimeout: 10000, // Default by node-imap
       authTimeout: 5000, // Default by node-imap,
-      debug: null, //console.log, // Or your custom function with only one incoming argument. Default: null
+      debug: debug, //console.log, // Or your custom function with only one incoming argument. Default: null
       tlsOptions: { rejectUnauthorized: false },
       mailbox: mailbox, // mailbox to monitor
       searchFilter: filter, // the search filter being used after an IDLE notification has been retrieved
@@ -45,58 +45,63 @@ module.exports =  {
     });
   },
 
-  startListener : function(listener, callback) {
-    listener.start(); // start listening
+  startListener : function(listener, keepConnected , callback) {
+    return new Promise(function() {
+      listener.start(); // start listening
 
-    listener.on("server:connected", function(){
-      console.log("imapConnected");
-    });
+      listener.on("server:connected", function () {
+        console.log("imapConnected");
+      });
 
-    listener.on("server:disconnected", function(){
-      console.log("imapDisconnected");
-    });
+      listener.on("server:disconnected", function () {
+        console.log("imapDisconnected");
+        //re-start if not initiated by the call.
+        if(keepConnected) listener.start(); // start listening
+      });
 
-    listener.on("error", function(err){
-      console.log(err);
-    });
+      listener.on("error", function (err) {
+        console.log(err);
+      });
 
-    listener.on("mail", function(input, seqno, attributes){
-      // do something with mail object including attachments
-      console.log("mail received!", seqno, attributes);
-      // console.log("== Email Received ==", input);
+      listener.on("mail", function (input, seqno, attributes) {
+        // do something with mail object including attachments
+        console.log("mail received!", seqno, attributes);
+        // console.log("== Email Received ==", input);
 
-      //1. convert html to text
-      //2. summarize attachment info (name, type, size)
+        //1. convert html to text
+        //2. summarize attachment info (name, type, size)
 
-      if(input.attachments) {
-        var attachments = [];
-        for(var i=0; i < input.attachments.length; ++i) {
-          var attachment = input.attachments[i];
-          attachments.push({name: attachment.fileName, type: attachment.contentType, size: attachment.length});
+        if (input.attachments) {
+          var attachments = [];
+          for (var i = 0; i < input.attachments.length; ++i) {
+            var attachment = input.attachments[i];
+            attachments.push({name: attachment.fileName, type: attachment.contentType, size: attachment.length});
+          }
+          input.attachments = attachments;
         }
-        input.attachments = attachments;
-      }
 
-      if(!input.text && input.html) {
-        input.text = htmlToText.fromString(input.html);
-      }
+        if (!input.text && input.html) {
+          input.text = htmlToText.fromString(input.html);
+        }
 
-      if(input.eml) {
-        delete input.eml;
-      }
+        if (input.eml) {
+          delete input.eml;
+        }
 
-      callback(input);
+        callback(input);
 
+      });
+
+      listener.on("attachment", function (attachment) {
+        console.log("attachment received!");
+      });
     });
-
-    listener.on("attachment", function(attachment){
-      console.log("attachment received!");
-    });
-
   },
   stopListener: function(listener) {
-    // stop listening
-    listener.stop();
+    return new Promise(function() {
+      // stop listening
+      listener.stop();
+    });
   }
 };
 
