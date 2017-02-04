@@ -33,7 +33,7 @@ module.exports =  {
       tls: true,
       connTimeout: 10000, // Default by node-imap
       authTimeout: 5000, // Default by node-imap,
-      debug: debug, //console.log, // Or your custom function with only one incoming argument. Default: null
+      debug: (debug?console.log:null), //console.log, // Or your custom function with only one incoming argument. Default: null
       tlsOptions: { rejectUnauthorized: false },
       mailbox: mailbox, // mailbox to monitor
       searchFilter: filter, // the search filter being used after an IDLE notification has been retrieved
@@ -77,11 +77,13 @@ module.exports =  {
             var attachment = input.attachments[i];
             attachments.push({name: attachment.fileName, type: attachment.contentType, size: attachment.length});
           }
+          console.log("attachments=", attachments);
           input.attachments = attachments;
         }
 
-        if (!input.text && input.html) {
+        if (input.html) {
           input.text = htmlToText.fromString(input.html);
+          delete input.html;
         }
 
         if (input.eml) {

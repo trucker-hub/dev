@@ -123,18 +123,21 @@ export function destroy(req, res) {
 }
 
 var saveEmail = function(email) {
-  return EmailsMining.findOneAndUpdate({messageId: email.messageId}, email,
-    {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true}).exec()
-    .then(function() {
-      console.log("email has been saved");
-    })
-    .catch(function() {
-      console.log("saving failed");
-    });
+  try {
+    EmailsMining.findOneAndUpdate({messageId: email.messageId + ""}, email,
+      {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: false}).exec()
+      .then(function() {
+        console.log("email has been saved");
+      });
+  } catch(e) {
+    print(e);
+  }
 };
 export function start(req, res) {
 
-  mailListenerInbox = MailListener.createListener("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox", ["UNSEEN"]);
+  //mailListenerInbox = MailListener.createListener("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox", ["UNSEEN"]);
+  mailListenerInbox = MailListener.createListener("lan@cc-chb.com", "edcrfv9111", "imap.secureserver.net", 993,
+    "Inbox", ["UNSEEN"], true);
   MailListener.startListener(mailListenerInbox, true, function (email) {
     console.log("received email=", email.subject);
     saveEmail(email);

@@ -7,6 +7,8 @@ var addressSchema = {
   name: String
 };
 
+var attachmentType = new mongoose.Schema({ name: String, type:String, size: Number});
+
 var EmailsMiningSchema = new mongoose.Schema({
   from: [ addressSchema ],
   subject: String,
@@ -23,7 +25,7 @@ var EmailsMiningSchema = new mongoose.Schema({
   priority: { type: String, enum: [ 'high', 'normal', 'low' ], default: 'normal'},
   text: String,
   html: String,
-  attachments: [ { name: String, type:String, size: Number} ],
+  attachments: [ attachmentType ],
   active: Boolean
 });
 
