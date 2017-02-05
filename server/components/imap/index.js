@@ -20,8 +20,6 @@
 const MailListener = require('mail-listener2');
 const htmlToText = require('html-to-text');
 
-var listener;
-
 module.exports =  {
 
   createListener: function(username, password, host, port, mailbox, filter, debug = false) {
@@ -51,6 +49,7 @@ module.exports =  {
 
       listener.on("server:connected", function () {
         console.log("imapConnected");
+        console.log("listener state", listener.imap.state);
       });
 
       listener.on("server:disconnected", function () {
@@ -66,7 +65,6 @@ module.exports =  {
       listener.on("mail", function (input, seqno, attributes) {
         // do something with mail object including attachments
         console.log("mail received!", seqno, attributes);
-        // console.log("== Email Received ==", input);
 
         //1. convert html to text
         //2. summarize attachment info (name, type, size)
@@ -77,7 +75,6 @@ module.exports =  {
             var attachment = input.attachments[i];
             attachments.push({name: attachment.fileName, type: attachment.contentType, size: attachment.length});
           }
-          console.log("attachments=", attachments);
           input.attachments = attachments;
         }
 
@@ -95,7 +92,7 @@ module.exports =  {
       });
 
       listener.on("attachment", function (attachment) {
-        console.log("attachment received!");
+        //console.log("attachment received!");
       });
     });
   },

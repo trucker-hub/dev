@@ -6,25 +6,31 @@ const ngRoute = require('angular-route');
 import routes from './email.routes';
 
 export class EmailComponent {
-  emails = [];
 
-  monitoring = false;
+  emails = [];
+  monitoring;
+
   /*@ngInject*/
-  constructor($http, socket) {
+  constructor($http, $scope, socket) {
     this.$http = $http;
     this.socket = socket;
+
+    $scope.$on('$destroy', function() {
+      socket.unsyncUpdates('email');
+    });
   }
 
   checkMonitoringStatus() {
-    this.$http.get('/api/emails/isMonitoring', {})
+    this.$http.get('/api/emails/monitoring/status')
       .then(response => {
-        this.monitoring = (response.data.monitoring=='started');
+        console.log("response", response.data);
+        this.monitoring = (response.data=='STARTED');
       });
   }
 
   startMonitoring () {
     console.log("clicked to start monitoring");
-    this.$http.post('/api/emails/startMonitoring', {})
+    this.$http.post('/api/emails/monitoring/start', {})
       .then(response => {
         console.log("response", response);
         this.socket.syncUpdates('email', this.emails);
@@ -34,11 +40,11 @@ export class EmailComponent {
 
   stopMonitoring () {
     console.log("clicked to stop monitoring");
-      this.$http.post('/api/emails/stopMonitoring', {})
-        .then(response => {
+    this.$http.post('/api/emails/monitoring/stop', {})
+      .then(response => {
         console.log("response", response);
         this.monitoring = false;
-    });
+      });
   }
 
   getEmails () {
@@ -47,6 +53,11 @@ export class EmailComponent {
       this.socket.syncUpdates('email', this.emails);
       console.log("response", response);
     });
+  }
+
+  $onInit() {
+    this.checkMonitoringStatus();
+    this.getEmails();
   }
 }
 

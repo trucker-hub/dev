@@ -133,8 +133,9 @@ var saveEmail = function(email) {
   }
 };
 
-export function monitoringStatus(req, res) {
+export function status (req, res) {
 
+  //console.log("listener status", mailListenerInbox.imap.state);
   if(mailListenerInbox && mailListenerInbox.imap.state=='connected') {
     return res.status(200).send("STARTED");
   }else {
