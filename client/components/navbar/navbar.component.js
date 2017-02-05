@@ -14,8 +14,8 @@ export class NavbarComponent {
       link: '/quoting'
     },
     {
-      title: 'Email Stats',
-      link: '/emails-stats'
+      title: 'Emails',
+      link: '/email'
     }
   ];
 

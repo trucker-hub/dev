@@ -4,7 +4,7 @@
 'use strict';
 
 const util = require('util');
-const Listener = require('../../components/imap');
+const Listener = require('../../components/imap/index');
 
 //listener.init("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox");
 var listener1 = Listener.createListener("lan@cc-chb.com", "edcrfv9111", "imap.secureserver.net", 993,

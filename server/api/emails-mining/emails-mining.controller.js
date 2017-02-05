@@ -13,11 +13,7 @@
 import jsonpatch from 'fast-json-patch';
 const util = require('util');
 import EmailsMining from './emails-mining.model';
-import MailListener from '../../components/imap';
 
-
-var mailListenerInbox;
-var mailListenerSent;
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -122,35 +118,5 @@ export function destroy(req, res) {
     .catch(handleError(res));
 }
 
-var saveEmail = function(email) {
-  try {
-    EmailsMining.findOneAndUpdate({messageId: email.messageId + ""}, email,
-      {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: false}).exec()
-      .then(function() {
-        console.log("email has been saved");
-      });
-  } catch(e) {
-    print(e);
-  }
-};
-export function start(req, res) {
-
-  //mailListenerInbox = MailListener.createListener("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox", ["UNSEEN"]);
-  mailListenerInbox = MailListener.createListener("lan@cc-chb.com", "edcrfv9111", "imap.secureserver.net", 993,
-    "Inbox", ["UNSEEN"], true);
-  MailListener.startListener(mailListenerInbox, true, function (email) {
-    console.log("received email=", email.subject);
-    saveEmail(email);
-  }).then(function() {
-    console.log("started listener");
-  });
-  return res.status(200).send('triggered email monitoring');
-
-}
-
-export function stop(req, res) {
-  MailListener.stopListener(mailListenerInbox);
-  return res.status(200).send('triggered stopping email monitoring');
-}
 
 
