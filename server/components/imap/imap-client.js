@@ -101,8 +101,14 @@ function imapReady(self) {
       self.emit('server:connected');
       self.connected = true;
       //var listener = imapMail.bind(self);
-      self.imap.on('mail', () => { parseEmail(self); } );
-      self.imap.on('update', () => { parseEmail(self); } );
+      self.imap.on('mail', () => {
+        console.log("==> check email due to mail event");
+        parseEmail(self);
+      } );
+      self.imap.on('update', () => {
+        console.log("==> check email due to update event");
+        parseEmail(self);
+      } );
     }
   });
 }
