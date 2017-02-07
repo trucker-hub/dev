@@ -44,6 +44,7 @@
 /* Component styles are injected through gulp */
 /* inject:css */
 @import 'admin/admin.css';
+@import 'email/email.css';
 @import 'emails-stats/emails-stats.css';
 @import 'main/main.css';
 @import 'quoting/quoting.css';

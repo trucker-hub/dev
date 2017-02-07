@@ -13,6 +13,7 @@ module.exports = MailClient;
 function MailClient(settings) {
   var self = this;
   this.mailbox = settings.mailbox || "INBOX";
+  this.connected = false;
   if ('string' === typeof settings.searchFilter) {
     this.searchFilter = [settings.searchFilter];
   } else {
@@ -39,6 +40,7 @@ function MailClient(settings) {
   });
   this.imap.once('close', () => {
     self.emit('server:disconnected');
+    self.connected = false;
     if(settings.options.keepConnected) {
       self.start();
     }
@@ -59,6 +61,37 @@ MailClient.prototype.stop = function() {
   this.imap.end();
 };
 
+MailClient.prototype.startReceiving = function(callback) {
+  this.start();
+  this.on('mail', function(input,seqno,attributes) {
+    console.log("mail received!", seqno, attributes);
+
+    //1. convert html to text
+    //2. summarize attachment info (name, type, size)
+
+    if (input.attachments) {
+      var attachments = [];
+      for (var i = 0; i < input.attachments.length; ++i) {
+        var attachment = input.attachments[i];
+        attachments.push({name: attachment.fileName, type: attachment.contentType, size: attachment.length});
+      }
+      input.attachments = attachments;
+    }
+
+    if (input.html) {
+      input.text = htmlToText.fromString(input.html);
+      delete input.html;
+    }
+
+    if (input.eml) {
+      delete input.eml;
+    }
+
+    callback(input);
+  });
+};
+
+
 function imapReady(self) {
 
   self.imap.openBox(self.mailbox, false, function(err, mailbox) {
@@ -66,6 +99,7 @@ function imapReady(self) {
       self.emit('error', err);
     } else {
       self.emit('server:connected');
+      self.connected = true;
       //var listener = imapMail.bind(self);
       self.imap.on('mail', () => { parseEmail(self); } );
       self.imap.on('update', () => { parseEmail(self); } );

@@ -30,7 +30,6 @@ Listener.startListener(listener2, false, function (email) {
   console.log("start Sent Items listener successfully!")
 });
 */
-
 var client = new MailClient({
   username: "jinbo.chen@gmail.com",
   password: "chunfeng2",
@@ -47,6 +46,7 @@ var client = new MailClient({
     keepConnected: false
   }
 });
+
 
 client.start(); // start listening
 

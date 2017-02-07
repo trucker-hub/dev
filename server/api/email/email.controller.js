@@ -12,11 +12,10 @@
 
 import jsonpatch from 'fast-json-patch';
 import Email from './email.model';
-import MailListener from '../../components/imap';
+import MailClient from '../../components/imap/imap-client';
 
+var client;
 
-var mailListenerInbox;
-var mailListenerSent;
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -136,7 +135,7 @@ var saveEmail = function(email) {
 export function status (req, res) {
 
   //console.log("listener status", mailListenerInbox.imap.state);
-  if(mailListenerInbox && mailListenerInbox.imap.state=='connected') {
+  if(client && client.connected) {
     return res.status(200).send("STARTED");
   }else {
     return res.status(200).send("STOPPED");
@@ -146,21 +145,33 @@ export function status (req, res) {
 export function start(req, res) {
 
   //mailListenerInbox = MailListener.createListener("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox", ["UNSEEN"]);
-  mailListenerInbox = MailListener.createListener("lan@cc-chb.com", "edcrfv9111",
-    "imap.secureserver.net", 993,
-    "Inbox", ["UNSEEN"], true);
-  MailListener.startListener(mailListenerInbox, true, function (email) {
+  client = new MailClient({
+    username: "jinbo.chen@gmail.com",
+    password: "chunfeng2",
+    host: "imap.gmail.com",
+    port: 993, // imap port
+    mailbox: "Inbox", // mailbox to monitor
+    searchFilter: ['UNSEEN'],
+    options: {
+      tls: true,
+      tlsOptions: { rejectUnauthorized: false },
+      debug: true,
+      connTimeout: 10000, // Default by node-imap
+      authTimeout: 5000, // Default by node-imap,
+      keepConnected: false
+    }
+  });
+
+  client.startReceiving(function (email) {
     console.log("received email=", email.subject);
     saveEmail(email);
-  }).then(function() {
-    console.log("started listener");
   });
   return res.status(200).send("STARTED");
 
 }
 
 export function stop(req, res) {
-  MailListener.stopListener(mailListenerInbox);
+  client.stop();
   return res.status(200).send("STOPPED");
 }
 
