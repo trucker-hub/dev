@@ -61,6 +61,7 @@ MailClient.prototype.stop = function() {
   this.imap.end();
 };
 
+
 MailClient.prototype.startReceiving = function(callback) {
   this.start();
   this.on('mail', function(input,seqno,attributes) {
@@ -90,7 +91,6 @@ MailClient.prototype.startReceiving = function(callback) {
     callback(input);
   });
 };
-
 
 function imapReady(self) {
 
