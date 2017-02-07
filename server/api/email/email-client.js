@@ -6,6 +6,7 @@
 const util = require('util');
 const Listener = require('../../components/imap/index');
 const MailClient = require('../../components/imap/imap-client');
+const htmlToText = require('html-to-text');
 
 /*
 //listener.init("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox");
@@ -42,10 +43,12 @@ var client = new MailClient({
     tlsOptions: { rejectUnauthorized: false },
     debug: true,
     connTimeout: 10000, // Default by node-imap
-    authTimeout: 5000 // Default by node-imap,
+    authTimeout: 5000, // Default by node-imap,
+    keepConnected: false
   }
 });
 
+client.start(); // start listening
 
 client.on("server:connected", function () {
   console.log("imapConnected");
@@ -54,8 +57,7 @@ client.on("server:connected", function () {
 
 client.on("server:disconnected", function () {
   console.log("imapDisconnected");
-  //re-start if not initiated by the call.
-  if(keepConnected) listener.start(); // start listening
+  //re-start if not initiated by the call
 });
 
 client.on("error", function (err) {
@@ -63,12 +65,12 @@ client.on("error", function (err) {
 });
 
 client.on("attachment", function (attachment) {
-  console.log("attachment received!");
+  //console.log("attachment received!");
 });
 
 client.on("mail", function (input, seqno, attributes) {
   // do something with mail object including attachments
-  console.log("mail received!", seqno, attributes);
+  //console.log("mail received!", seqno, attributes);
 
   //1. convert html to text
   //2. summarize attachment info (name, type, size)
@@ -91,8 +93,8 @@ client.on("mail", function (input, seqno, attributes) {
     delete input.eml;
   }
 
-  console.log("email", util.inspect(input, {depth: null, colors: true}));
+  console.log("email=", input.subject, input.attachments, seqno);
 
 });
 
-client.start(); // start listening
+

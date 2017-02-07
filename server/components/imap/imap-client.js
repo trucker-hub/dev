@@ -11,6 +11,7 @@ var async = require('async');
 module.exports = MailClient;
 
 function MailClient(settings) {
+  var self = this;
   this.mailbox = settings.mailbox || "INBOX";
   if ('string' === typeof settings.searchFilter) {
     this.searchFilter = [settings.searchFilter];
@@ -33,24 +34,21 @@ function MailClient(settings) {
     debug: (settings.options.debug?console.log: null)
   });
 
-  this.imap.once('ready', imapReady.bind(this));
-  this.imap.once('close', imapClose.bind(this));
-  this.imap.on('error', imapError.bind(this));
+  this.imap.once('ready', () => {
+    imapReady(self);
+  });
+  this.imap.once('close', () => {
+    self.emit('server:disconnected');
+    if(settings.options.keepConnected) {
+      self.start();
+    }
+  });
+  this.imap.on('error', (err) => {
+    self.emit('error', err);
+  });
 }
 
 util.inherits(MailClient, EventEmitter);
-
-function imapClose() {
-  this.emit('server:disconnected');
-}
-
-function imapError(err) {
-  this.emit('error', err);
-}
-
-function imapMail() {
-  parseEmail.call(this);
-}
 
 
 MailClient.prototype.start = function() {
@@ -61,42 +59,46 @@ MailClient.prototype.stop = function() {
   this.imap.end();
 };
 
-function imapReady() {
-  var self = this;
-  this.imap.openBox(this.mailbox, false, function(err, mailbox) {
+function imapReady(self) {
+
+  self.imap.openBox(self.mailbox, false, function(err, mailbox) {
     if (err) {
       self.emit('error', err);
     } else {
       self.emit('server:connected');
-      var listener = imapMail.bind(self);
-      self.imap.on('mail', listener);
-      self.imap.on('update', listener);
+      //var listener = imapMail.bind(self);
+      self.imap.on('mail', () => { parseEmail(self); } );
+      self.imap.on('update', () => { parseEmail(self); } );
     }
   });
 }
 
-function parseEmail() {
-  var self = this;
-  this.imap.search(self.searchFilter, function(err, results) {
+function parseEmail(self) {
+
+  self.imap.search(self.searchFilter, function(err, results) {
     if (err) {
       self.emit('error', err);
     } else if (results.length > 0) {
       async.each(results, function( result, callback) {
+        //console.log("result", result);
         var f = self.imap.fetch(result, { bodies: '', markSeen: false });
         f.on('message', function(msg, seqno) {
-          console.log("email received", msg);
+          //console.log("email received", seqno);
           var parser = new MailParser(self.mailParserOptions);
           var attributes = null;
           var emlbuffer = new Buffer('');
 
           parser.on("end", function(mail) {
+            //console.log("email end", mail);
             mail.eml = emlbuffer.toString('utf-8');
             self.emit('mail',mail,seqno,attributes);
           });
           parser.on("attachment", function (attachment) {
+            //console.log("attachment received", attachment);
             self.emit('attachment', attachment);
           });
           msg.on('body', function(stream, info) {
+            //console.log("email body", info);
             stream.on('data', function(chunk) {
               emlbuffer = Buffer.concat([emlbuffer, chunk]);
             });
@@ -106,6 +108,7 @@ function parseEmail() {
             });
           });
           msg.on('attributes', function(attrs) {
+            //console.log("attachment received", attrs);
             attributes = attrs;
           });
         });
