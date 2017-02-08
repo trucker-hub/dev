@@ -15,6 +15,7 @@ var EmailSchema = new mongoose.Schema({
   date: Date,
   receivedDate: Date,
   messageId: String,
+  segno: Number,
   inReplyTo: [String],
   replyTo: String,
   references: [String],
