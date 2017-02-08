@@ -81,6 +81,7 @@ MailClient.prototype.start = function() {
       delete input.eml;
     }
     input.seqno = seqno;
+    input.attributes = attributes;
     self.newCallback(input);
   });
 };
@@ -115,8 +116,8 @@ function imapReady(self) {
 }
 
 
-function parseEmail(self, segno) {
-  var f = self.imap.fetch(segno, { bodies: '', markSeen: false });
+function parseEmail(self, uid) {
+  var f = self.imap.fetch(uid, { bodies: '', markSeen: false });
   f.on('message', function(msg, seqno) {
     //console.log("email received", seqno);
     var parser = new MailParser(self.mailParserOptions);

@@ -4,10 +4,11 @@
 'use strict';
 
 const util = require('util');
-const Listener = require('../../components/imap/index');
-const MailClient = require('../../components/imap/imap-client');
-const htmlToText = require('html-to-text');
 
+const MailClient = require('../../components/imap/imap-client');
+
+var HashTable = require('hashtable');
+var cached = new HashTable();
 /*
 //listener.init("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox");
 var listener1 = Listener.createListener("lan@cc-chb.com", "edcrfv9111", "imap.secureserver.net", 993,
@@ -16,6 +17,8 @@ var listener2 = Listener.createListener("lan@cc-chb.com", "edcrfv9111", "imap.se
   "Sent Items", ["ALL", ['SINCE', 'Feb 1, 2017']]);
 
 */
+
+
 var client = new MailClient({
       username: "jinbo.chen@gmail.com",
       password: "chunfeng2",
@@ -34,10 +37,12 @@ var client = new MailClient({
 
     function(input) {
       console.log("new email=", input.subject, input.seqno);
+      cached.put(input.seqno, input);
     },
 
     function(seqno) {
-      console.log("email seqno " + seqno + " got deleted");
+      var email = cached.get(seqno);
+      console.log("email[ " + email.subject + "] got deleted");
     }
 );
 
