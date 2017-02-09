@@ -7,14 +7,22 @@ var MailParser = require("mailparser").MailParser;
 const htmlToText = require('html-to-text');
 
 var async = require('async');
+var HashTable = require('hashtable');
+
+/**
+ * Callbacks for NEW, UPDATE (READ, FLAGGED), DELETE
+ * @type {MailClient}
+ */
 
 module.exports = MailClient;
 
-function MailClient(settings, newCallback, deleteCallback) {
+function MailClient(settings, newCB, updateCB, delCB) {
   var self = this;
+  this.cached = new HashTable();
   this.mailbox = settings.mailbox || "INBOX";
-  this.newCallback = newCallback;
-  this.deleteCallback = deleteCallback;
+  this.newCB = newCB;
+  this.updateCB = updateCB;
+  this.delCB = delCB;
   this.connected = false;
   if ('string' === typeof settings.searchFilter) {
     this.searchFilter = [settings.searchFilter];
@@ -50,40 +58,50 @@ function MailClient(settings, newCallback, deleteCallback) {
   this.imap.on('error', (err) => {
     self.emit('error', err);
   });
+
+  this.on('mail', function(email, seqno, attributes) {
+    //console.log("mail received!", seqno, attributes);
+    //1. convert html to text
+    //2. summarize attachment info (name, type, size)
+
+    if (email.attachments) {
+      var attachments = [];
+      for (var i = 0; i < email.attachments.length; ++i) {
+        var attachment = email.attachments[i];
+        attachments.push({name: attachment.fileName, type: attachment.contentType, size: attachment.length});
+      }
+      email.attachments = attachments;
+    }
+
+    if (email.html) {
+      email.text = htmlToText.fromString(email.html);
+      delete email.html;
+    }
+
+    if (email.eml) {
+      delete email.eml;
+    }
+    email.seqno = seqno;
+    email.attributes = attributes;
+    self.cached.put(seqno, email);
+    self.newCB(email);
+  });
+
+  this.on('mail-update', function(uid, seqno, attributes) {
+    var email = self.cached.get(seqno);
+    if(email) {
+      email.attributes = attributes;
+      console.log("email["+ email.subject + "] got deleted");
+      self.updateCB(email);
+    }
+  });
 }
 
 util.inherits(MailClient, EventEmitter);
 
 
 MailClient.prototype.start = function() {
-  var self = this;
   this.imap.connect();
-  this.on('mail', function(input,seqno,attributes) {
-    //console.log("mail received!", seqno, attributes);
-    //1. convert html to text
-    //2. summarize attachment info (name, type, size)
-
-    if (input.attachments) {
-      var attachments = [];
-      for (var i = 0; i < input.attachments.length; ++i) {
-        var attachment = input.attachments[i];
-        attachments.push({name: attachment.fileName, type: attachment.contentType, size: attachment.length});
-      }
-      input.attachments = attachments;
-    }
-
-    if (input.html) {
-      input.text = htmlToText.fromString(input.html);
-      delete input.html;
-    }
-
-    if (input.eml) {
-      delete input.eml;
-    }
-    input.seqno = seqno;
-    input.attributes = attributes;
-    self.newCallback(input);
-  });
 };
 
 MailClient.prototype.stop = function() {
@@ -98,28 +116,57 @@ function imapReady(self) {
     } else {
       self.emit('server:connected');
       self.connected = true;
+      checkEmails(self);
       self.imap.on('mail', () => {
         console.log("==> check email due to mail event");
-        parseEmails(self);
+        checkEmails(self);
       } );
       self.imap.on('expunge', (seqno) => {
         console.log("==> check email due to delete event", seqno);
-        self.deleteCallback(seqno);
+        var email = self.cached.get(seqno);
+        if(email) {
+          console.log("email["+ email.subject + "] got deleted");
+          fetchEmail(self, email.attributes.uid);
+        }
+        self.delCB(seqno);
       });
 
       self.imap.on('update', (seqno) => {
         console.log("==> !!! check email due to update event", seqno);
-        parseEmail(self, seqno);
+        var email = self.cached.get(seqno);
+        if(email) {
+          console.log("email["+ email.subject + "] got updated");
+          updateEmail(self, email.attributes.uid);
+        }else {
+          console.log("email segno =" + seqno + " is no longer existing in the cached");
+        }
       });
     }
   });
 }
 
-
-function parseEmail(self, uid) {
+function updateEmail(self, uid) {
   var f = self.imap.fetch(uid, { bodies: '', markSeen: false });
+  console.log("Update for UID=", uid);
   f.on('message', function(msg, seqno) {
     //console.log("email received", seqno);
+    console.log("SEGNO=", seqno);
+
+    msg.on('attributes', function(attrs) {
+      console.log("attachment received", attrs);
+      self.emit("email-update", uid, seqno, attrs);
+    });
+  });
+  f.once('error', function(err) {
+    self.emit('error', err);
+  });
+}
+function fetchEmail(self, uid) {
+  var f = self.imap.fetch(uid, { bodies: '', markSeen: false });
+  console.log("UID=", uid);
+  f.on('message', function(msg, seqno) {
+    //console.log("email received", seqno);
+    console.log("SEGNO=", seqno);
     var parser = new MailParser(self.mailParserOptions);
     var attributes = null;
     var emlbuffer = new Buffer('');
@@ -144,7 +191,7 @@ function parseEmail(self, uid) {
       });
     });
     msg.on('attributes', function(attrs) {
-      //console.log("attachment received", attrs);
+      console.log("attachment received", attrs);
       attributes = attrs;
     });
   });
@@ -153,14 +200,14 @@ function parseEmail(self, uid) {
   });
 }
 
-function parseEmails(self) {
+function checkEmails(self) {
 
-  self.imap.search(self.searchFilter, function(err, results) {
+  self.imap.search(self.searchFilter, function(err, uids) {
     if (err) {
       self.emit('error', err);
-    } else if (results.length > 0) {
-      async.each(results, function( result, callback) {
-        parseEmail(self, result);
+    } else if (uids.length > 0) {
+      async.each(uids, function( uid, callback) {
+        fetchEmail(self, uid);
       });
     }
   });

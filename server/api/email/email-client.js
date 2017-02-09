@@ -7,8 +7,6 @@ const util = require('util');
 
 const MailClient = require('../../components/imap/imap-client');
 
-var HashTable = require('hashtable');
-var cached = new HashTable();
 /*
 //listener.init("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox");
 var listener1 = Listener.createListener("lan@cc-chb.com", "edcrfv9111", "imap.secureserver.net", 993,
@@ -35,14 +33,16 @@ var client = new MailClient({
         keepConnected: false
       }},
 
-    function(input) {
-      console.log("new email=", input.subject, input.seqno);
-      cached.put(input.seqno, input);
+    function(email) {
+      console.log("new email=", email.subject, email.seqno, email.attachments);
+    },
+
+    function(email) {
+      console.log("email update=", input.subject, email.attributes.flags);
     },
 
     function(seqno) {
-      var email = cached.get(seqno);
-      console.log("email[ " + email.subject + "] got deleted");
+      console.log("email[ " + seqno + "] got deleted");
     }
 );
 
