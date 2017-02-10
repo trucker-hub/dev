@@ -22,6 +22,8 @@ import account from './account';
 import admin from './admin';
 import navbar from '../components/navbar/navbar.component';
 import footer from '../components/footer/footer.component';
+import emailFilter from './email-address/email-address.filter';
+import emailHistoryFilter from './emailHistory/emailHistory.filter';
 import quoting from './quoting/quoting.component';
 import emails from './emails-stats/emails-stats.component';
 import email from './email/email.component';
@@ -33,7 +35,7 @@ import socket from '../components/socket/socket.service';
 import './app.css';
 
 angular.module('truckingHubApp', [ngCookies, ngResource, ngSanitize, 'btford.socket-io', ngRoute,
-  uiBootstrap, _Auth, account, admin, quoting, emails, email, navbar, footer, main, constants, socket, util
+  uiBootstrap, _Auth, account, admin, quoting, emails, email, emailFilter,emailHistoryFilter, navbar, footer, main, constants, socket, util
 ])
   .config(routeConfig)
   .run(function($rootScope, $location, Auth) {
