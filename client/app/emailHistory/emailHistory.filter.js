@@ -6,9 +6,9 @@ export function emailHistoryFilter() {
   return function(input) {
     var first = input[0];
     var result = input.map(history => {
-      return "<li>" + formatHistory(history, first) + "</li>";
+      return formatHistory(history, first);
     });
-    return "<ol>" + result.join("\n") + "</ol>";
+    return result.join("\n");
   };
 }
 
@@ -26,14 +26,14 @@ var formatHistory = function(history, first) {
 
 var flagFormat = function(flags) {
   if (flags.length == 0) {
-    return "NEW";
+    return "N";
   } else {
     var result = flags.map(flag => {
-      console.log(flag);
       if (flag == '\\Deleted') return 'D';
       else if (flag == "\\Seen") return 'R';
       else if (flag == '\\Flagged') return 'F';
-      else return "NEW";
+      else if (flag == '\\Answered') return 'A';
+      else return "";
     });
     return result.join(",");
   }
