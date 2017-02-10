@@ -59,7 +59,7 @@ function MailClient(settings, newCB, updateCB, delCB) {
     self.emit('error', err);
   });
 
-  this.on('mail', function(email, seqno, attributes) {
+  this.on('mail-new', function(email, seqno, attributes) {
     //console.log("mail received!", seqno, attributes);
     //1. convert html to text
     //2. summarize attachment info (name, type, size)
@@ -73,16 +73,16 @@ function MailClient(settings, newCB, updateCB, delCB) {
       email.attachments = attachments;
     }
 
-    if (email.html) {
+    if (email.html && !email.text) {
       email.text = htmlToText.fromString(email.html);
-      delete email.html;
     }
 
     if (email.eml) {
       delete email.eml;
     }
     email.seqno = seqno;
-    email.attributes = attributes;
+    email.uid = attributes.uid;
+    email.history = [{flags: attributes.flags, date: new Date()}];
     self.cached.put(seqno, email);
     self.newCB(email);
   });
@@ -90,8 +90,8 @@ function MailClient(settings, newCB, updateCB, delCB) {
   this.on('mail-update', function(uid, seqno, attributes) {
     var email = self.cached.get(seqno);
     if(email) {
-      email.attributes = attributes;
-      console.log("email["+ email.subject + "] got deleted");
+      email.history.push({flags: attributes.flags, date: new Date()});
+      console.log("email["+ email.subject + "] flags got updated");
       self.updateCB(email);
     }
   });
@@ -125,19 +125,24 @@ function imapReady(self) {
         console.log("==> check email due to delete event", seqno);
         var email = self.cached.get(seqno);
         if(email) {
+          email.history.push({flags: ['\\Deleted'], date: new Date()});
           console.log("email["+ email.subject + "] got deleted");
-          fetchEmail(self, email.attributes.uid);
+          self.delCB(email);
+        }else {
+          // if not in the cached, we probably don't care about them any more.
+          console.log("email segno =" + seqno + " is no longer existing in the cached");
         }
-        self.delCB(seqno);
+
       });
 
       self.imap.on('update', (seqno) => {
         console.log("==> !!! check email due to update event", seqno);
         var email = self.cached.get(seqno);
         if(email) {
-          console.log("email["+ email.subject + "] got updated");
-          updateEmail(self, email.attributes.uid);
+          console.log("email["+ email.subject + "] has been updated, checking its flags");
+          updateEmail(self, email.uid);
         }else {
+          // if not in the cached, we probably don't care about them any more.
           console.log("email segno =" + seqno + " is no longer existing in the cached");
         }
       });
@@ -147,23 +152,24 @@ function imapReady(self) {
 
 function updateEmail(self, uid) {
   var f = self.imap.fetch(uid, { bodies: '', markSeen: false });
-  console.log("Update for UID=", uid);
+  console.log("Update email for UID=", uid);
   f.on('message', function(msg, seqno) {
     //console.log("email received", seqno);
     console.log("SEGNO=", seqno);
 
     msg.on('attributes', function(attrs) {
-      console.log("attachment received", attrs);
-      self.emit("email-update", uid, seqno, attrs);
+      console.log("updated attributes received", attrs);
+      self.emit("mail-update", uid, seqno, attrs);
     });
   });
   f.once('error', function(err) {
     self.emit('error', err);
   });
 }
+
 function fetchEmail(self, uid) {
   var f = self.imap.fetch(uid, { bodies: '', markSeen: false });
-  console.log("UID=", uid);
+  console.log("Fetch new email for UID=", uid);
   f.on('message', function(msg, seqno) {
     //console.log("email received", seqno);
     console.log("SEGNO=", seqno);
@@ -174,7 +180,7 @@ function fetchEmail(self, uid) {
     parser.on("end", function(mail) {
       //console.log("email end", mail);
       mail.eml = emlbuffer.toString('utf-8');
-      self.emit('mail',mail,seqno,attributes);
+      self.emit('mail-new',mail,seqno,attributes);
     });
     parser.on("attachment", function (attachment) {
       //console.log("attachment received", attachment);
@@ -191,7 +197,7 @@ function fetchEmail(self, uid) {
       });
     });
     msg.on('attributes', function(attrs) {
-      console.log("attachment received", attrs);
+      //console.log("attachment received", attrs);
       attributes = attrs;
     });
   });

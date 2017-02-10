@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 
 var attachmentType = new mongoose.Schema({ name: String, type:String, size: Number});
 var addressSchema = new mongoose.Schema({ address: String, name: String });
+var updateSchema = new mongoose.Schema({ flags: [String], date: Date });
 
 var EmailSchema = new mongoose.Schema({
   from: [ addressSchema ],
@@ -15,7 +16,9 @@ var EmailSchema = new mongoose.Schema({
   date: Date,
   receivedDate: Date,
   messageId: String,
-  segno: Number,
+  seqno: Number,
+  uid: Number,
+  history: [ updateSchema ],
   inReplyTo: [String],
   replyTo: String,
   references: [String],

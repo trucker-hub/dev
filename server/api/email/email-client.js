@@ -27,7 +27,7 @@ var client = new MailClient({
       options: {
         tls: true,
         tlsOptions: { rejectUnauthorized: false },
-        debug: true,
+        debug: false,
         connTimeout: 10000, // Default by node-imap
         authTimeout: 5000, // Default by node-imap,
         keepConnected: false
@@ -38,11 +38,11 @@ var client = new MailClient({
     },
 
     function(email) {
-      console.log("email update=", input.subject, email.attributes.flags);
+      console.log("email update=", email.subject, " update history=", email.history);
     },
 
-    function(seqno) {
-      console.log("email[ " + seqno + "] got deleted");
+    function(email) {
+      console.log("email deleted=", email.subject, " history=", email.history);
     }
 );
 

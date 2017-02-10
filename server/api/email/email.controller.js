@@ -159,13 +159,19 @@ export function start(req, res) {
       connTimeout: 10000, // Default by node-imap
       authTimeout: 5000, // Default by node-imap,
       keepConnected: false
+    }},
+    function(email) {
+      saveEmail(email);
+    },
+    function(email) {
+      saveEmail(email);
+    },
+    function(email) {
+      saveEmail(email);
     }
-  });
+  );
 
-  client.startReceiving(function (email) {
-    console.log("received email=", email.subject);
-    saveEmail(email);
-  });
+  client.start();
   return res.status(200).send("STARTED");
 
 }
