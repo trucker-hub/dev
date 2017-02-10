@@ -3,7 +3,7 @@
 export default function($routeProvider) {
   'ngInject';
   $routeProvider
-    .when('/emails-stats', {
-      template: '<emails-stats></emails-stats>'
+    .when('/email-setting', {
+      template: '<email-setting></email-setting>'
     });
 }

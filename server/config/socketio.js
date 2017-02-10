@@ -16,6 +16,7 @@ function onConnect(socket) {
   });
 
   // Insert sockets below
+  require('../api/email-setting/email-setting.socket').register(socket);
   require('../api/email/email.socket').register(socket);
   require('../api/thing/thing.socket').register(socket);
 }

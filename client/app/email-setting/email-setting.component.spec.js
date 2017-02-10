@@ -1,14 +1,14 @@
 'use strict';
 
-describe('Component: EmailsStatsComponent', function() {
+describe('Component: EmailSettingComponent', function() {
   // load the controller's module
-  beforeEach(module('truckingHubApp.emails-stats'));
+  beforeEach(module('devApp.emailSetting'));
 
-  var EmailsStatsComponent;
+  var EmailSettingComponent;
 
   // Initialize the controller and a mock scope
   beforeEach(inject(function($componentController) {
-    EmailsStatsComponent = $componentController('emails-stats', {});
+    EmailSettingComponent = $componentController('email-setting', {});
   }));
 
   it('should ...', function() {
