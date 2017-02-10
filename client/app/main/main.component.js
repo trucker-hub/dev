@@ -22,6 +22,9 @@ export class MainController {
         this.awesomeThings = response.data;
         this.socket.syncUpdates('thing', this.awesomeThings);
       });
+    this.socket.on('thing:refresh', function() {
+      console.log("page needs a refresh");
+    })
   }
 
   addThing() {

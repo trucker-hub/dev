@@ -17,7 +17,6 @@ function onConnect(socket) {
 
   // Insert sockets below
   require('../api/email/email.socket').register(socket);
-  require('../api/emails-mining/emails-mining.socket').register(socket);
   require('../api/thing/thing.socket').register(socket);
 }
 
