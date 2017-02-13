@@ -3,9 +3,15 @@
 import mongoose from 'mongoose';
 
 var EmailSettingSchema = new mongoose.Schema({
-  name: String,
-  info: String,
-  active: Boolean
+  username: String,
+  password: String,
+  host: String,
+  port: Number,
+  mailbox: String,
+  search: String,
+  tls: Boolean,
+  debugging: Boolean,
+  monitoring: Boolean
 });
 
 export default mongoose.model('EmailSetting', EmailSettingSchema);

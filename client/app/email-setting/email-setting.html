@@ -1,1 +1,76 @@
-<div>This is the email-setting view.</div>
+<div class="container">
+
+  <div class="col-lg-12">
+    <h1 class="page-header">Email Accounts</h1>
+
+    <table class="table table-striped">
+      <tr>
+
+        <th class="col-md-4 col-lg-4 col-sm-4">Account</th>
+        <th class="col-md-4 col-lg-4 col-sm-4">Email Server</th>
+        <th class="col-md-4 col-lg-4 col-sm-4"></th>
+      </tr>
+      <tr ng-repeat="account in emailSettingCtrl.emailAccounts">
+
+        <td >
+          <div class="form-group">
+            <label for="inputEmail">Email Address</label>
+            <input type="email" class="form-control" id="inputEmail" placeholder="Email" ng-model="account.username">
+          </div>
+          <div class="form-group">
+            <label for="exampleInputPassword1">Password</label>
+            <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" ng-model="account.password">
+          </div>
+          <div class="form-group">
+            <label for="inputMailBox">Mail Box</label>
+            <input type="text" class="form-control" id="inputMailBox" placeholder="Inbox" ng-model="account.mailbox">
+          </div>
+        </td>
+        <td >
+          <div class="form-group">
+            <label for="InputHost">Host</label>
+            <input type="url" class="form-control" id="InputHost" placeholder="IMAP Host" ng-model="account.host">
+          </div>
+          <div class="form-group">
+            <label for="inputPort">Port</label>
+            <input type="number" class="form-control" id="inputPort" placeholder="993" ng-model="account.port">
+          </div>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="account.tls"> TLS
+            </label>
+          </div>
+          <div class="checkbox">
+            <label>
+              <input type="checkbox" ng-model="account.debugging"> Debugging
+            </label>
+          </div>
+        </td>
+        <td>
+          <div class="panel panel-default">
+            <div class="panel-heading"><h4>Status: <span class="label label-default">Default</span></h4></div>
+            <div class="panel-body">
+              <div class="btn-group" uib-dropdown>
+                <button id="split-button" type="button" class="btn btn-danger">Action</button>
+                <button type="button" class="btn btn-danger" uib-dropdown-toggle>
+                  <span class="caret"></span>
+                  <span class="sr-only">Split button!</span>
+                </button>
+                <ul class="dropdown-menu" uib-dropdown-menu role="menu" aria-labelledby="split-button">
+                  <li role="menuitem"><a href="#" ng-click="emailSettingCtrl.saveAccount(account)">Save</a></li>
+                  <li role="menuitem"><a href="#" ng-click="emailSettingCtrl.monitorAccount(account, true)">Start Monitoring</a></li>
+                  <li role="menuitem"><a href="#" ng-click="emailSettingCtrl.monitorAccount(account, true)">Stop Monitoring</a></li>
+                  <li class="divider"></li>
+                  <li role="menuitem"><a href="#" ng-click="emailSettingCtrl.deleteAccount(account)">Delete</a></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+        </td>
+      </tr>
+    </table>
+
+  </div>
+
+</div>

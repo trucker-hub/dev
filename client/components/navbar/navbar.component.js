@@ -16,6 +16,10 @@ export class NavbarComponent {
     {
       title: 'Emails',
       link: '/email'
+    },
+    {
+      title: 'Email Settings',
+      link: '/email-setting'
     }
   ];
 

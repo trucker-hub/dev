@@ -11,7 +11,6 @@ export default function(app) {
   // Insert routes below
   app.use('/api/email-settings', require('./api/email-setting'));
   app.use('/api/emails', require('./api/email'));
-  app.use('/api/emails-minings', require('./api/emails-mining'));
   app.use('/api/things', require('./api/thing'));
   app.use('/api/users', require('./api/user'));
 
