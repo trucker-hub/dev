@@ -8,15 +8,29 @@ import routes from './email-setting.routes';
 export class EmailSettingComponent {
   /*@ngInject*/
   emailAccounts = [{
-    username:"jinbo.chen@gmail.com",
-    password:"xxxxx",
-    mailbox:"Inbox",
-    host:"imap.abc.com",
-    port:993,
-    tls:true,
-    monitor:false,
+    username: "jinbo.chen@gmail.com",
+    password: "xxxxx",
+    mailbox: "Inbox",
+    host: "imap.abc.com",
+    port: 993,
+    tls: true,
+    monitoring: false,
     debugging: true
-  }];
+  }, {
+    username: "jinbo.chen@gmail.com",
+    password: "xxxxx",
+    mailbox: "Inbox",
+    host: "imap.abc.com",
+    port: 993,
+    tls: true,
+    monitoring: true,
+    testing: {
+      status: true
+    },
+    debugging: true
+  }
+
+  ];
   pendingEmailAccount = null;
 
   constructor($http, $scope, socket) {
@@ -39,34 +53,34 @@ export class EmailSettingComponent {
   getEmailAccounts() {
     var self = this;
     this.$http.get('/api/email-settings')
-      .then(response => {
-        self.emailAccounts = response.data;
-      });
+        .then(response => {
+          self.emailAccounts = response.data;
+        });
   }
 
   addEmailAccount() {
     var self = this;
     this.$http.post('/api/email-settings', this.pendingEmailAccount)
-      .then(response => {
-        self.pendingEmailAccount = response.data;
-      });
+        .then(response => {
+          self.pendingEmailAccount = response.data;
+        });
   }
 
   removeEmailAccount() {
     var self = this;
     this.$http.delete('/api/email-settings/' + this.pendingEmailAccount._id)
-      .then(response => {
-        console.log("response=", response);
-        self.pendingEmailAccount = null;
-      });
+        .then(response => {
+          console.log("response=", response);
+          self.pendingEmailAccount = null;
+        });
   }
 
   updateEmailAccount() {
     var self = this;
-    this.$http.put('/api/email-settings/'+this.pendingEmailAccount._id, this.pendingEmailAccount)
-      .then(response => {
-        self.pendingEmailAccount = response.data;
-      });
+    this.$http.put('/api/email-settings/' + this.pendingEmailAccount._id, this.pendingEmailAccount)
+        .then(response => {
+          self.pendingEmailAccount = response.data;
+        });
   }
 
   saveAccount(account) {
@@ -74,22 +88,27 @@ export class EmailSettingComponent {
   }
 
   monitorAccount(account, start) {
-    console.log("mount account [", account.username, "]", start);
+    console.log("monitor account [", account.username, "]", start);
   }
 
   deleteAccount(account) {
     console.log("delete account=", account.username);
   }
+
+  testAccount(account) {
+    console.log("test account=", account.username);
+  }
+
   $onInit() {
     //this.getEmailAccounts();
   }
 }
 
 export default angular.module('devApp.emailSetting', [ngRoute])
-  .config(routes)
-  .component('emailSetting', {
-    template: require('./email-setting.html'),
-    controller: EmailSettingComponent,
-    controllerAs: 'emailSettingCtrl'
-  })
-  .name;
+    .config(routes)
+    .component('emailSetting', {
+      template: require('./email-setting.html'),
+      controller: EmailSettingComponent,
+      controllerAs: 'emailSettingCtrl'
+    })
+    .name;
