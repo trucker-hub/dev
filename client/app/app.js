@@ -22,11 +22,14 @@ import account from './account';
 import admin from './admin';
 import navbar from '../components/navbar/navbar.component';
 import footer from '../components/footer/footer.component';
+
 import emailSetting from './email-setting/email-setting.component';
 import emailFilter from './email-address/email-address.filter';
 import emailHistoryFilter from './emailHistory/emailHistory.filter';
-import quoting from './quoting/quoting.component';
 import email from './email/email.component';
+
+import quoting from './quoting/quoting.component';
+
 import main from './main/main.component';
 import constants from './app.constants';
 import util from '../components/util/util.module';

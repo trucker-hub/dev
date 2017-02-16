@@ -6,40 +6,43 @@ const ngRoute = require('angular-route');
 import routes from './email-setting.routes';
 
 export class EmailSettingComponent {
-  /*@ngInject*/
-  emailAccounts = [
-    {
-      _id: 'xkskskakakakakak',
-      username: "jinbo.chen@gmail.com",
-      password: "xxxxx",
-      mailbox: "Inbox",
-      host: "imap.abc.com",
-      port: 993,
-      tls: true,
-      monitoring: false,
-      testing: {
-        status: false
-      },
-      debugging: true
-    },
-    {
-      username: "jinbo.chen@gmail.com",
-      password: "xxxxx",
-      mailbox: "Inbox",
-      host: "imap.abc.com",
-      port: 993,
-      tls: true,
-      monitoring: false,
-      testing: {
-        status: true
-      },
-      debugging: true
-    }];
-  pendingEmailAccount = null;
 
+  emailAccounts = [];
+  alerts = [];
+  /*  [
+   {
+   _id: 'xkskskakakakakak',
+   username: "jinbo.chen@gmail.com",
+   password: "xxxxx",
+   mailbox: "Inbox",
+   host: "imap.abc.com",
+   port: 993,
+   tls: true,
+   monitoring: false,
+   testing: {
+   status: false
+   },
+   debugging: true
+   },
+   {
+   username: "jinbo.chen@gmail.com",
+   password: "xxxxx",
+   mailbox: "Inbox",
+   host: "imap.abc.com",
+   port: 993,
+   tls: true,
+   monitoring: false,
+   testing: {
+   status: true
+   },
+   debugging: true
+   }];*/
+
+  /*@ngInject*/
   constructor($http, $scope, socket) {
     this.$http = $http;
     this.socket = socket;
+    this.$scope = $scope;
 
     $scope.$on('$destroy', function () {
       socket.unsyncUpdates('email-settings');
@@ -57,9 +60,9 @@ export class EmailSettingComponent {
   getEmailAccounts() {
     var self = this;
     this.$http.get('/api/email-settings')
-        .then(response => {
-          self.emailAccounts = response.data;
-        });
+      .then(response => {
+        self.emailAccounts = response.data;
+      });
   }
 
   isExistingAccount(account) {
@@ -70,34 +73,50 @@ export class EmailSettingComponent {
     return account.hasOwnProperty('changed') && account.changed;
   }
 
+  addEmptyAccount() {
+    this.emailAccounts.push({
+      username: "jinbo.chen@gmail.com",
+      password: "chunfeng2",
+      mailbox: "Inbox",
+      host: "imap.abc.com",
+      port: 993,
+      tls: true,
+      monitoring: false,
+      debugging: true
+    });
+  }
 
-  updateEmailAccount(account) {
+  updateAccountWith(response) {
+    var saved = response.data;
+    var self = this;
+    self.emailAccounts.forEach(function (email, i) {
+      if (email.username == saved.username) {
+        self.emailAccounts[i] = saved;
+      }
+    });
+  };
+
+  updateAccount(account) {
     var self = this;
     this.$http.put('/api/email-settings/' + account._id, account)
-        .then(response => {
-          var saved = response.data;
-          self.emailAccounts.forEach(function (email, i) {
-            if (email.username == saved.username) {
-              self.emailAccounts[i] = saved;
-            }
-          });
-        }).catch(function (response) {
-      // show an alert
-    });
+      .then(response => {
+        console.log("response", response.data);
+        self.updateAccountWith(response);
+        self.alerts.push({msg: 'Email account ' + account.username + ' has been updated!', type: 'success'});
+      }).catch(function (response) {
+      console.log("response", response);
+      self.alerts.push({msg: 'Email account ' + account.username + ' did not got updated!', type: 'danger'});
+    })
   }
 
   saveAccount(account) {
     console.log("save account=", account.username);
     var self = this;
     this.$http.post('/api/email-settings', account).then(response => {
-      var saved = response.data;
-      self.emailAccounts.forEach(function (email, i) {
-        if (email.username == saved.username) {
-          self.emailAccounts[i] = saved;
-        }
-      });
+      self.updateAccountWith(response);
+      self.alerts.push({msg: 'Email account ' + account.username + ' has been saved!', type: 'success'});
     }).catch(function (response) {
-      // show an alert
+      self.alerts.push({msg: 'Email account ' + account.username + ' did not got saved!', type: 'danger'});
     });
   }
 
@@ -109,25 +128,32 @@ export class EmailSettingComponent {
     console.log("delete account=", account.username);
     var self = this;
     this.$http.delete('/api/email-settings/' + account._id)
-        .then(response => {
-          self.getEmailAccounts();
-        });
+      .then(response => {
+        self.getEmailAccounts();
+        self.alerts.push({msg: 'Email account ' + account.username + ' has been deleted!', type: 'success'});
+      }).catch(response => {
+      self.alerts.push({msg: 'Email account ' + account.username + ' did not got deleted!', type: 'danger'});
+    });
   }
+
+  closeAlert = function(index) {
+    this.alerts.splice(index, 1);
+  };
 
   testAccount(account) {
     console.log("test account=", account.username);
   }
 
   $onInit() {
-    //this.getEmailAccounts();
+    this.getEmailAccounts();
   }
 }
 
 export default angular.module('devApp.emailSetting', [ngRoute])
-    .config(routes)
-    .component('emailSetting', {
-      template: require('./email-setting.html'),
-      controller: EmailSettingComponent,
-      controllerAs: 'emailSettingCtrl'
-    })
-    .name;
+  .config(routes)
+  .component('emailSetting', {
+    template: require('./email-setting.html'),
+    controller: EmailSettingComponent,
+    controllerAs: 'emailSettingCtrl'
+  })
+  .name;
