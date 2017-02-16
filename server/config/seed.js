@@ -7,6 +7,7 @@
 import Thing from '../api/thing/thing.model';
 import User from '../api/user/user.model';
 import Email from '../api/email/email.model';
+import EmailSetting from '../api/email-setting/email-setting.model';
 
 Thing.find({}).remove()
   .then(() => {
@@ -61,4 +62,8 @@ User.find({}).remove()
 
 Email.find({}).remove().then(() => {
   console.log('removed old emails');
+});
+
+EmailSetting.find({}).remove().then(() => {
+  console.log('removed old email account');
 });

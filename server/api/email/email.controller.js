@@ -16,11 +16,12 @@ import MailClient from '../../components/imap/imap-client';
 
 var client;
 
+var clients = new Map();
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
-  return function(entity) {
-    if(entity) {
+  return function (entity) {
+    if (entity) {
       return res.status(statusCode).json(entity);
     }
     return null;
@@ -28,10 +29,10 @@ function respondWithResult(res, statusCode) {
 }
 
 function patchUpdates(patches) {
-  return function(entity) {
+  return function (entity) {
     try {
       jsonpatch.apply(entity, patches, /*validate*/ true);
-    } catch(err) {
+    } catch (err) {
       return Promise.reject(err);
     }
 
@@ -40,8 +41,8 @@ function patchUpdates(patches) {
 }
 
 function removeEntity(res) {
-  return function(entity) {
-    if(entity) {
+  return function (entity) {
+    if (entity) {
       return entity.remove()
         .then(() => {
           res.status(204).end();
@@ -51,8 +52,8 @@ function removeEntity(res) {
 }
 
 function handleEntityNotFound(res) {
-  return function(entity) {
-    if(!entity) {
+  return function (entity) {
+    if (!entity) {
       res.status(404).end();
       return null;
     }
@@ -62,7 +63,7 @@ function handleEntityNotFound(res) {
 
 function handleError(res, statusCode) {
   statusCode = statusCode || 500;
-  return function(err) {
+  return function (err) {
     res.status(statusCode).send(err);
   };
 }
@@ -91,10 +92,15 @@ export function create(req, res) {
 
 // Upserts the given Email in the DB at the specified ID
 export function upsert(req, res) {
-  if(req.body._id) {
+  if (req.body._id) {
     delete req.body._id;
   }
-  return Email.findOneAndUpdate({_id: req.params.id}, req.body, {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: true}).exec()
+  return Email.findOneAndUpdate({_id: req.params.id}, req.body, {
+    new: true,
+    upsert: true,
+    setDefaultsOnInsert: true,
+    runValidators: true
+  }).exec()
 
     .then(respondWithResult(res))
     .catch(handleError(res));
@@ -102,7 +108,7 @@ export function upsert(req, res) {
 
 // Updates an existing Email in the DB
 export function patch(req, res) {
-  if(req.body._id) {
+  if (req.body._id) {
     delete req.body._id;
   }
   return Email.findById(req.params.id).exec()
@@ -120,24 +126,24 @@ export function destroy(req, res) {
     .catch(handleError(res));
 }
 
-var saveEmail = function(email) {
+var saveEmail = function (email) {
   try {
     Email.findOneAndUpdate({messageId: email.messageId + ""}, email,
       {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: false}).exec()
-      .then(function() {
+      .then(function () {
         console.log("email has been saved");
       });
-  } catch(e) {
+  } catch (e) {
     print(e);
   }
 };
 
-export function status (req, res) {
+export function status(req, res) {
 
   //console.log("listener status", mailListenerInbox.imap.state);
-  if(client && client.connected) {
+  if (client && client.connected) {
     return res.status(200).send("STARTED");
-  }else {
+  } else {
     return res.status(200).send("STOPPED");
   }
 }
@@ -146,27 +152,28 @@ export function start(req, res) {
 
   //mailListenerInbox = MailListener.createListener("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox", ["UNSEEN"]);
   client = new MailClient({
-    username: "jinbo.chen@gmail.com",
-    password: "chunfeng2",
-    host: "imap.gmail.com",
-    port: 993, // imap port
-    mailbox: "Inbox", // mailbox to monitor
-    searchFilter: ['UNSEEN'],
-    options: {
-      tls: true,
-      tlsOptions: { rejectUnauthorized: false },
-      debug: true,
-      connTimeout: 10000, // Default by node-imap
-      authTimeout: 5000, // Default by node-imap,
-      keepConnected: false
-    }},
-    function(email) {
+      username: "jinbo.chen@gmail.com",
+      password: "chunfeng2",
+      host: "imap.gmail.com",
+      port: 993, // imap port
+      mailbox: "Inbox", // mailbox to monitor
+      searchFilter: ['UNSEEN'],
+      options: {
+        tls: true,
+        tlsOptions: {rejectUnauthorized: false},
+        debug: true,
+        connTimeout: 10000, // Default by node-imap
+        authTimeout: 5000, // Default by node-imap,
+        keepConnected: false
+      }
+    },
+    function (email) {
       saveEmail(email);
     },
-    function(email) {
+    function (email) {
       saveEmail(email);
     },
-    function(email) {
+    function (email) {
       saveEmail(email);
     }
   );
@@ -174,6 +181,48 @@ export function start(req, res) {
   client.start();
   return res.status(200).send("STARTED");
 
+}
+
+export function test(req, res) {
+
+  var email = req.body;
+
+  var c = new MailClient({
+      username: email.username,
+      password: email.password,
+      host: email.host,
+      port: email.port, // imap port
+      mailbox: email.mailbox, // mailbox to monitor
+      searchFilter: ['UNSEEN'],
+      options: {
+        tls: email.tls,
+        tlsOptions: {rejectUnauthorized: false},
+        debug: email.debugging,
+        connTimeout: 10000, // Default by node-imap
+        authTimeout: 5000, // Default by node-imap,
+        keepConnected: false
+      }
+    },
+    function (email) {
+      console.log("new email received");
+    },
+    function (email) {
+      console.log("email updated");
+    },
+    function (email) {
+      console.log("email deleted");
+    }
+  );
+
+  c.on("server:connected", function () {
+    //connection is good
+    c.stop();
+    return res.status(200).json({"status": true});
+  });
+  c.on("error", function () {
+    return res.status(200).json({"status": false});
+  });
+  c.start();
 }
 
 export function stop(req, res) {

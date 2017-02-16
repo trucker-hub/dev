@@ -13,6 +13,7 @@ router.put('/:id', controller.upsert);
 router.patch('/:id', controller.patch);
 router.delete('/:id', controller.destroy);
 router.post('/monitoring/start', controller.start);
+router.post('/monitoring/test', controller.test);
 router.post('/monitoring/stop', controller.stop);
 
 module.exports = router;

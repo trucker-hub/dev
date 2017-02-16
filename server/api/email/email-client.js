@@ -46,6 +46,9 @@ var client = new MailClient({
     }
 );
 
+client.on('server:connected', function() {
+  console.log("server is connected");
+});
 
 client.start(); // start listening
 

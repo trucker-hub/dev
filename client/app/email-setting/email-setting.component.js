@@ -78,7 +78,7 @@ export class EmailSettingComponent {
       username: "jinbo.chen@gmail.com",
       password: "chunfeng2",
       mailbox: "Inbox",
-      host: "imap.abc.com",
+      host: "imap.gmail.com",
       port: 993,
       tls: true,
       monitoring: false,
@@ -98,14 +98,14 @@ export class EmailSettingComponent {
 
   updateAccount(account) {
     var self = this;
+    console.log("account=", account);
     this.$http.put('/api/email-settings/' + account._id, account)
       .then(response => {
-        console.log("response", response.data);
         self.updateAccountWith(response);
         self.alerts.push({msg: 'Email account ' + account.username + ' has been updated!', type: 'success'});
       }).catch(function (response) {
-      console.log("response", response);
-      self.alerts.push({msg: 'Email account ' + account.username + ' did not got updated!', type: 'danger'});
+        console.log("response", response);
+        self.alerts.push({msg: 'Email account ' + account.username + ' did not got updated!', type: 'danger'});
     })
   }
 
@@ -132,7 +132,7 @@ export class EmailSettingComponent {
         self.getEmailAccounts();
         self.alerts.push({msg: 'Email account ' + account.username + ' has been deleted!', type: 'success'});
       }).catch(response => {
-      self.alerts.push({msg: 'Email account ' + account.username + ' did not got deleted!', type: 'danger'});
+        self.alerts.push({msg: 'Email account ' + account.username + ' did not got deleted!', type: 'danger'});
     });
   }
 
@@ -141,7 +141,12 @@ export class EmailSettingComponent {
   };
 
   testAccount(account) {
-    console.log("test account=", account.username);
+    this.$http.post('/api/emails/monitoring/test', account).then(response => {
+      account.testing = response.data;
+      self.alerts.push({msg: 'Email account ' + account.username + ' testing is !' + response.data, type: 'success'});
+    }).catch(function (response) {
+      self.alerts.push({msg: 'Email account ' + account.username + ' testing failed' + response.data, type: 'danger'});
+    });
   }
 
   $onInit() {
