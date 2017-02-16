@@ -7,20 +7,25 @@
       <div class="panel-heading">
         <div class=" btn-group-lg" role="group" aria-label="action">
           <div class="btn-group" role="group">
-            <button type="button" class="btn btn-default" ng-click="emailSettingCtrl.saveAccount(account)">Save</button>
+            <button type="button" class="btn btn-default" ng-show="emailSettingCtrl.isExistingAccount(account)"
+                    ng-click="emailSettingCtrl.updateAccount(account)" ng-disabled="!emailSettingCtrl.isAccountChanged(account)">Update</button>
+          </div>
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-default" ng-hide="emailSettingCtrl.isExistingAccount(account)"
+                    ng-click="emailSettingCtrl.saveAccount(account)" ng-disabled="!emailSettingCtrl.isAccountChanged(account)">Add</button>
           </div>
           <div class="btn-group" role="group">
             <button type="button" class="btn btn-default" ng-click="emailSettingCtrl.testAccount(account)">Test Connection
               <i class="fa fa-check-square-o" aria-hidden="true" ng-show="account.testing && account.testing.status"></i>
               <i class="fa fa-times" aria-hidden="true" ng-show="account.testing && !account.testing.status"></i></button>
           </div>
-          <div class="btn-group" role="group" ng-hide="account.monitoring" ng-click="emailSettingCtrl.monitorAccount(account, true)">
+          <div class="btn-group" role="group" ng-hide="account.monitoring || !emailSettingCtrl.isExistingAccount(account)" ng-click="emailSettingCtrl.monitorAccount(account, true)">
             <button type="button" class="btn btn-default"><i class="fa fa-cog" aria-hidden="true"></i> Start Monitoring</button>
           </div>
           <div class="btn-group" role="group" ng-show="account.monitoring" ng-click="emailSettingCtrl.monitorAccount(account, false)">
             <button type="button" class="btn btn-default"><i class="fa fa-cog fa-spin" aria-hidden="true"></i> Stop Monitoring</button>
           </div>
-          <div class="btn-group pull-right" role="group" ng-click="emailSettingCtrl.deleteAccount(account)">
+          <div class="btn-group pull-right" role="group" ng-click="emailSettingCtrl.deleteAccount(account)" ng-show="emailSettingCtrl.isExistingAccount(account)">
             <button type="button" class="btn btn-danger ">Delete</button>
           </div>
         </div>
@@ -36,34 +41,34 @@
             <td >
               <div class="form-group">
                 <label for="inputEmail">Email Address</label>
-                <input type="email" class="form-control" id="inputEmail" placeholder="Email" ng-model="account.username">
+                <input type="email" class="form-control" id="inputEmail" placeholder="Email" ng-model="account.username" ng-change="account.changed=true;">
               </div>
               <div class="form-group">
                 <label for="exampleInputPassword1">Password</label>
-                <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" ng-model="account.password">
+                <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" ng-model="account.password" ng-change="account.changed=true;">
               </div>
               <div class="form-group">
                 <label for="inputMailBox">Mail Box</label>
-                <input type="text" class="form-control" id="inputMailBox" placeholder="Inbox" ng-model="account.mailbox">
+                <input type="text" class="form-control" id="inputMailBox" placeholder="Inbox" ng-model="account.mailbox" ng-change="account.changed=true;">
               </div>
             </td>
             <td >
               <div class="form-group">
                 <label for="InputHost">Host</label>
-                <input type="url" class="form-control" id="InputHost" placeholder="IMAP Host" ng-model="account.host">
+                <input type="url" class="form-control" id="InputHost" placeholder="IMAP Host" ng-model="account.host" ng-change="account.changed=true;">
               </div>
               <div class="form-group">
                 <label for="inputPort">Port</label>
-                <input type="number" class="form-control" id="inputPort" placeholder="993" ng-model="account.port">
+                <input type="number" class="form-control" id="inputPort" placeholder="993" ng-model="account.port" ng-change="account.changed=true;">
               </div>
               <div class="checkbox">
                 <label>
-                  <input type="checkbox" ng-model="account.tls"> TLS
+                  <input type="checkbox" ng-model="account.tls" ng-change="account.changed=true"> TLS
                 </label>
               </div>
               <div class="checkbox">
                 <label>
-                  <input type="checkbox" ng-model="account.debugging"> Debugging
+                  <input type="checkbox" ng-model="account.debugging" ng-change="account.changed=true"> Debugging
                 </label>
               </div>
             </td>

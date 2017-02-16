@@ -7,30 +7,34 @@ import routes from './email-setting.routes';
 
 export class EmailSettingComponent {
   /*@ngInject*/
-  emailAccounts = [{
-    username: "jinbo.chen@gmail.com",
-    password: "xxxxx",
-    mailbox: "Inbox",
-    host: "imap.abc.com",
-    port: 993,
-    tls: true,
-    monitoring: false,
-    debugging: true
-  }, {
-    username: "jinbo.chen@gmail.com",
-    password: "xxxxx",
-    mailbox: "Inbox",
-    host: "imap.abc.com",
-    port: 993,
-    tls: true,
-    monitoring: true,
-    testing: {
-      status: true
+  emailAccounts = [
+    {
+      _id: 'xkskskakakakakak',
+      username: "jinbo.chen@gmail.com",
+      password: "xxxxx",
+      mailbox: "Inbox",
+      host: "imap.abc.com",
+      port: 993,
+      tls: true,
+      monitoring: false,
+      testing: {
+        status: false
+      },
+      debugging: true
     },
-    debugging: true
-  }
-
-  ];
+    {
+      username: "jinbo.chen@gmail.com",
+      password: "xxxxx",
+      mailbox: "Inbox",
+      host: "imap.abc.com",
+      port: 993,
+      tls: true,
+      monitoring: false,
+      testing: {
+        status: true
+      },
+      debugging: true
+    }];
   pendingEmailAccount = null;
 
   constructor($http, $scope, socket) {
@@ -58,33 +62,43 @@ export class EmailSettingComponent {
         });
   }
 
-  addEmailAccount() {
-    var self = this;
-    this.$http.post('/api/email-settings', this.pendingEmailAccount)
-        .then(response => {
-          self.pendingEmailAccount = response.data;
-        });
+  isExistingAccount(account) {
+    return account.hasOwnProperty('_id');
   }
 
-  removeEmailAccount() {
-    var self = this;
-    this.$http.delete('/api/email-settings/' + this.pendingEmailAccount._id)
-        .then(response => {
-          console.log("response=", response);
-          self.pendingEmailAccount = null;
-        });
+  isAccountChanged(account) {
+    return account.hasOwnProperty('changed') && account.changed;
   }
 
-  updateEmailAccount() {
+
+  updateEmailAccount(account) {
     var self = this;
-    this.$http.put('/api/email-settings/' + this.pendingEmailAccount._id, this.pendingEmailAccount)
+    this.$http.put('/api/email-settings/' + account._id, account)
         .then(response => {
-          self.pendingEmailAccount = response.data;
-        });
+          var saved = response.data;
+          self.emailAccounts.forEach(function (email, i) {
+            if (email.username == saved.username) {
+              self.emailAccounts[i] = saved;
+            }
+          });
+        }).catch(function (response) {
+      // show an alert
+    });
   }
 
   saveAccount(account) {
     console.log("save account=", account.username);
+    var self = this;
+    this.$http.post('/api/email-settings', account).then(response => {
+      var saved = response.data;
+      self.emailAccounts.forEach(function (email, i) {
+        if (email.username == saved.username) {
+          self.emailAccounts[i] = saved;
+        }
+      });
+    }).catch(function (response) {
+      // show an alert
+    });
   }
 
   monitorAccount(account, start) {
@@ -93,6 +107,11 @@ export class EmailSettingComponent {
 
   deleteAccount(account) {
     console.log("delete account=", account.username);
+    var self = this;
+    this.$http.delete('/api/email-settings/' + account._id)
+        .then(response => {
+          self.getEmailAccounts();
+        });
   }
 
   testAccount(account) {
