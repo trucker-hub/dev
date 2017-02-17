@@ -8,6 +8,8 @@ import {EventEmitter} from 'events';
 import Thing from './thing.model';
 var ThingEvents = new EventEmitter();
 
+ThingEvents.hello = true;
+
 // Set max event listeners (0 == unlimited)
 ThingEvents.setMaxListeners(0);
 

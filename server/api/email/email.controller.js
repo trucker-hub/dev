@@ -219,10 +219,12 @@ export function test(req, res) {
     c.stop();
     return res.status(200).json({"status": true});
   });
-  c.on("error", function () {
+  c.on("error", function (err) {
+    console.error("err", err);
     return res.status(200).json({"status": false});
   });
   c.start();
+
 }
 
 export function stop(req, res) {

@@ -10,6 +10,7 @@ var EmailSettingEvents = new EventEmitter();
 
 // Set max event listeners (0 == unlimited)
 EmailSettingEvents.setMaxListeners(0);
+EmailSettingEvents.hello = "test string";
 
 // Model events
 var events = {

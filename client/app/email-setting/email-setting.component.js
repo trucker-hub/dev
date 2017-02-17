@@ -47,6 +47,10 @@ export class EmailSettingComponent {
     $scope.$on('$destroy', function () {
       socket.unsyncUpdates('email-settings');
     });
+
+    this.socket.listen("emailSetting", function(doc) {
+      console.log("receive socket message from server", doc);
+    })
   }
 
   /**

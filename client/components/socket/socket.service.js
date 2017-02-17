@@ -21,6 +21,13 @@ function Socket(socketFactory) {
   return {
     socket,
 
+    listen(modelName, cb) {
+      socket.on(`${modelName}:general`, function(data) {
+        console.log("received an event", data);
+        cb(data);
+      });
+    },
+
     /**
      * Register listeners to sync an array with updates on a model
      *
@@ -74,6 +81,7 @@ function Socket(socketFactory) {
      * @param modelName
      */
     unsyncUpdates(modelName) {
+      socket.removeAllListeners(`${modelName}:general`);
       socket.removeAllListeners(`${modelName}:save`);
       socket.removeAllListeners(`${modelName}:remove`);
     }

@@ -12,6 +12,7 @@
 
 import jsonpatch from 'fast-json-patch';
 import EmailSetting from './email-setting.model';
+import EmailSettingEvents from './email-setting.events';
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -87,6 +88,8 @@ export function create(req, res) {
 
 // Upserts the given EmailSetting in the DB at the specified ID
 export function upsert(req, res) {
+  console.log("should send out a socket notification");
+  EmailSettingEvents.emit("emailSetting:general", req.body);
   if(req.body._id) {
     delete req.body._id;
   }
