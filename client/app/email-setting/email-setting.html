@@ -16,8 +16,9 @@
           </div>
           <div class="btn-group" role="group">
             <button type="button" class="btn btn-default" ng-click="emailSettingCtrl.testAccount(account)">Test Connection
-              <i class="fa fa-check-square-o" aria-hidden="true" ng-show="account.testing && account.testing.status"></i>
-              <i class="fa fa-times" aria-hidden="true" ng-show="account.testing && !account.testing.status"></i></button>
+              <i class="fa fa-cog fa-spin"    aria-hidden="true"  ng-show="emailSettingCtrl.testAccountPending(account)"></i>
+              <i class="fa fa-check-square-o" aria-hidden="true"  ng-show="emailSettingCtrl.testAccountGood(account)"></i>
+              <i class="fa fa-times"          aria-hidden="true"  ng-show="emailSettingCtrl.testAccountFailed(account)"></i></button>
           </div>
           <div class="btn-group" role="group" ng-hide="account.monitoring || !emailSettingCtrl.isExistingAccount(account)" ng-click="emailSettingCtrl.monitorAccount(account, true)">
             <button type="button" class="btn btn-default"><i class="fa fa-cog" aria-hidden="true"></i> Start Monitoring</button>

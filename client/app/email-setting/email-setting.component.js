@@ -9,34 +9,6 @@ export class EmailSettingComponent {
 
   emailAccounts = [];
   alerts = [];
-  /*  [
-   {
-   _id: 'xkskskakakakakak',
-   username: "jinbo.chen@gmail.com",
-   password: "xxxxx",
-   mailbox: "Inbox",
-   host: "imap.abc.com",
-   port: 993,
-   tls: true,
-   monitoring: false,
-   testing: {
-   status: false
-   },
-   debugging: true
-   },
-   {
-   username: "jinbo.chen@gmail.com",
-   password: "xxxxx",
-   mailbox: "Inbox",
-   host: "imap.abc.com",
-   port: 993,
-   tls: true,
-   monitoring: false,
-   testing: {
-   status: true
-   },
-   debugging: true
-   }];*/
 
   /*@ngInject*/
   constructor($http, $scope, socket) {
@@ -48,19 +20,19 @@ export class EmailSettingComponent {
       socket.unsyncUpdates('email-settings');
     });
 
+    var self = this;
     this.socket.listen("emailSetting", function(doc) {
       console.log("receive socket message from server", doc);
-    })
+      if(doc.type == 'testing') {
+        self.emailAccounts.forEach(function (account, i) {
+          if (account.username == doc.username) {
+            self.emailAccounts[i].testing = doc.status;
+          }
+        });
+      }
+    });
   }
 
-  /**
-   * router.get('/', controller.index);
-   router.get('/:id', controller.show);
-   router.post('/', controller.create);
-   router.put('/:id', controller.upsert);
-   router.patch('/:id', controller.patch);
-   router.delete('/:id', controller.destroy);
-   */
   getEmailAccounts() {
     var self = this;
     this.$http.get('/api/email-settings')
@@ -76,6 +48,19 @@ export class EmailSettingComponent {
   isAccountChanged(account) {
     return account.hasOwnProperty('changed') && account.changed;
   }
+
+  testAccountPending(account) {
+    return account.hasOwnProperty('testing') && account.testing.status=='pending';
+  }
+
+  testAccountGood(account) {
+    return account.hasOwnProperty('testing') && account.testing.status=='passed';
+  }
+
+  testAccountFailed(account) {
+    return account.hasOwnProperty('testing') && account.testing.status=='failed';
+  }
+
 
   addEmptyAccount() {
     this.emailAccounts.push({
@@ -145,10 +130,11 @@ export class EmailSettingComponent {
   };
 
   testAccount(account) {
-    this.$http.post('/api/emails/monitoring/test', account).then(response => {
-      account.testing = response.data;
+    this.$http.post('/api/email-settings/test', account).then(response => {
+      account.testing = response.status;
       self.alerts.push({msg: 'Email account ' + account.username + ' testing is !' + response.data, type: 'success'});
     }).catch(function (response) {
+      account.testing = { status: 'failed'};
       self.alerts.push({msg: 'Email account ' + account.username + ' testing failed' + response.data, type: 'danger'});
     });
   }

@@ -14,6 +14,10 @@ import jsonpatch from 'fast-json-patch';
 import EmailSetting from './email-setting.model';
 import EmailSettingEvents from './email-setting.events';
 
+import MailClient from '../../components/imap/imap-client';
+
+var clients = new Map();
+
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
   return function(entity) {
@@ -88,8 +92,6 @@ export function create(req, res) {
 
 // Upserts the given EmailSetting in the DB at the specified ID
 export function upsert(req, res) {
-  console.log("should send out a socket notification");
-  EmailSettingEvents.emit("emailSetting:general", req.body);
   if(req.body._id) {
     delete req.body._id;
   }
@@ -117,4 +119,50 @@ export function destroy(req, res) {
     .then(handleEntityNotFound(res))
     .then(removeEntity(res))
     .catch(handleError(res));
+}
+
+
+export function test(req, res) {
+
+  var email = req.body;
+
+  var c = new MailClient({
+      username: email.username,
+      password: email.password,
+      host: email.host,
+      port: email.port, // imap port
+      mailbox: email.mailbox, // mailbox to monitor
+      searchFilter: ['UNSEEN'],
+      options: {
+        tls: email.tls,
+        tlsOptions: {rejectUnauthorized: false},
+        debug: email.debugging,
+        connTimeout: 10000, // Default by node-imap
+        authTimeout: 5000, // Default by node-imap,
+        keepConnected: false
+      }
+    },
+    function (email) {
+      console.log("new email received");
+    },
+    function (email) {
+      console.log("email updated");
+    },
+    function (email) {
+      console.log("email deleted");
+    }
+  );
+  c.start();
+  c.on("server:connected", function () {
+    //connection is good
+    c.stop();
+    EmailSettingEvents.emit("emailSetting:general", {"status": "passed", type: "testing", username: email.username});
+  });
+  c.on("error", function (err) {
+    console.error("err", err);
+    EmailSettingEvents.emit("emailSetting:general", {"status": "failed", type: "testing", username: email.username});
+  });
+
+  return res.status(200).json({"status": "pending", type: "testing", username: email.username});
+
 }
