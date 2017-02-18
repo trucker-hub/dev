@@ -5,6 +5,7 @@ const ngRoute = require('angular-route');
 
 import routes from './email-setting.routes';
 
+
 export class EmailSettingComponent {
 
   emailAccounts = [];
@@ -71,6 +72,7 @@ export class EmailSettingComponent {
       port: 993,
       tls: true,
       monitoring: false,
+      changed:true,
       debugging: true
     });
   }

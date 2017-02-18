@@ -46,6 +46,9 @@ var client = new MailClient({
     }
 );
 
+client.on('error', function(err) {
+  console.error("error", err);
+});
 client.on('server:connected', function() {
   console.log("server is connected");
 });

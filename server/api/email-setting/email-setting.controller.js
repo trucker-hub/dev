@@ -15,9 +15,8 @@ import EmailSetting from './email-setting.model';
 import EmailSettingEvents from './email-setting.events';
 
 import MailClient from '../../components/imap/imap-client';
-
 var clients = new Map();
-
+var client;
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
   return function(entity) {
@@ -126,7 +125,7 @@ export function test(req, res) {
 
   var email = req.body;
 
-  var c = new MailClient({
+  client = new MailClient({
       username: email.username,
       password: email.password,
       host: email.host,
@@ -152,16 +151,17 @@ export function test(req, res) {
       console.log("email deleted");
     }
   );
-  c.start();
-  c.on("server:connected", function () {
+  client.on("server:connected", function () {
     //connection is good
-    c.stop();
+    //client.stop();
     EmailSettingEvents.emit("emailSetting:general", {"status": "passed", type: "testing", username: email.username});
   });
-  c.on("error", function (err) {
+  client.on("error", function (err) {
     console.error("err", err);
     EmailSettingEvents.emit("emailSetting:general", {"status": "failed", type: "testing", username: email.username});
   });
+
+  client.start();
 
   return res.status(200).json({"status": "pending", type: "testing", username: email.username});
 
