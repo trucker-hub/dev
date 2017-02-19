@@ -128,6 +128,8 @@ export function destroy(req, res) {
     //let's stop the client first
     var client = clients.get(entity.username);
     if(client && client.connected) {
+      client.connected = false;
+      clients.delete(email.username);
       client.imap.destroy();
     }
   })
@@ -159,11 +161,14 @@ function monitor(email, starting, res) {
 
   var client = clients.get(email.username);
 
+  console.log("IMAP client status:" + email.username, email.monitoring);
   if (client && client.connected) {
     if (starting) {
-      return res.status(200).json();
+      return res.status(200).json(event("running", email));
     } else {
       client.imap.destroy();
+      clients.delete(email.username);
+      client.connected = false;
       return res.status(200).json(event("stopped", email));
     }
   } else if (client && !client.connected) {
