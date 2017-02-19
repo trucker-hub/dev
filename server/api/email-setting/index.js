@@ -11,6 +11,7 @@ router.post('/', controller.create);
 router.put('/:id', controller.upsert);
 router.patch('/:id', controller.patch);
 router.delete('/:id', controller.destroy);
-router.post('/test', controller.test);
+router.post('/start', controller.startMonitoring);
+router.post('/stop', controller.stopMonitoring);
 
 module.exports = router;

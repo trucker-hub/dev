@@ -22,12 +22,12 @@ export class EmailSettingComponent {
     });
 
     var self = this;
-    this.socket.listen("emailSetting", function(doc) {
-      console.log("receive socket message from server", doc);
-      if(doc.type == 'testing') {
+    this.socket.listen("emailSetting", function(event) {
+      console.log("receive socket message from server", event);
+      if(event.type == 'monitoring') {
         self.emailAccounts.forEach(function (account, i) {
-          if (account.username == doc.username) {
-            self.emailAccounts[i].testing = doc.status;
+          if (account.username == event.username) {
+            self.emailAccounts[i].monitoring = event;
           }
         });
       }
@@ -39,6 +39,7 @@ export class EmailSettingComponent {
     this.$http.get('/api/email-settings')
       .then(response => {
         self.emailAccounts = response.data;
+        console.log("email accounts", self.emailAccounts);
       });
   }
 
@@ -50,16 +51,24 @@ export class EmailSettingComponent {
     return account.hasOwnProperty('changed') && account.changed;
   }
 
-  testAccountPending(account) {
-    return account.hasOwnProperty('testing') && account.testing.status=='pending';
+  accountNew(account) {
+    return account.hasOwnProperty('monitoring') && account.monitoring.status=='';
   }
 
-  testAccountGood(account) {
-    return account.hasOwnProperty('testing') && account.testing.status=='passed';
+  accountPending(account) {
+    return account.hasOwnProperty('monitoring') && account.monitoring.status=='pending';
   }
 
-  testAccountFailed(account) {
-    return account.hasOwnProperty('testing') && account.testing.status=='failed';
+  accountRunning(account) {
+    return account.hasOwnProperty('monitoring') && account.monitoring.status=='running';
+  }
+
+  accountFailed(account) {
+    return account.hasOwnProperty('monitoring') && account.monitoring.status=='failed';
+  }
+
+  accountStopped(account) {
+    return account.hasOwnProperty('monitoring') && account.monitoring.status=='stopped';
   }
 
 
@@ -71,7 +80,7 @@ export class EmailSettingComponent {
       host: "imap.gmail.com",
       port: 993,
       tls: true,
-      monitoring: false,
+      monitoring: { status: ''},
       changed:true,
       debugging: true
     });
@@ -112,7 +121,24 @@ export class EmailSettingComponent {
   }
 
   monitorAccount(account, start) {
-    console.log("monitor account [", account.username, "]", start);
+    var self = this;
+    if(start) {
+      this.$http.post('/api/email-settings/start', account).then(response => {
+        account.monitoring = response.data;
+        self.alerts.push({msg: 'Email account ' + account.username + ' monitoring is !' + response.data, type: 'success'});
+      }).catch(function (response) {
+        account.monitoiring = { status: 'failed'};
+        self.alerts.push({msg: 'Email account ' + account.username + ' monitoring failed' + response.data, type: 'danger'});
+      });
+    }else {
+      this.$http.post('/api/email-settings/stop', account).then(response => {
+        account.monitoring = response.data;
+        self.alerts.push({msg: 'Stopping Email account monitoring ' + account.username  + response.data, type: 'success'});
+      }).catch(function (response) {
+        account.monitoring = { status: 'failed'};
+        self.alerts.push({msg: 'Email account ' + account.username + ' monitoring failed' + response.data, type: 'danger'});
+      });
+    }
   }
 
   deleteAccount(account) {
@@ -130,16 +156,6 @@ export class EmailSettingComponent {
   closeAlert = function(index) {
     this.alerts.splice(index, 1);
   };
-
-  testAccount(account) {
-    this.$http.post('/api/email-settings/test', account).then(response => {
-      account.testing = response.status;
-      self.alerts.push({msg: 'Email account ' + account.username + ' testing is !' + response.data, type: 'success'});
-    }).catch(function (response) {
-      account.testing = { status: 'failed'};
-      self.alerts.push({msg: 'Email account ' + account.username + ' testing failed' + response.data, type: 'danger'});
-    });
-  }
 
   $onInit() {
     this.getEmailAccounts();

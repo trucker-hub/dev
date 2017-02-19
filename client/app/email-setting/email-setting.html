@@ -7,6 +7,13 @@
       <div class="panel-heading">
         <div class=" btn-group-lg" role="group" aria-label="action">
           <div class="btn-group" role="group">
+            <i class="fa fa-question-circle-o" aria-hidden="true" ng-show="emailSettingCtrl.accountNew(account)"></i>
+            <i class="fa fa-cog fa-spin"    aria-hidden="true"  ng-show="emailSettingCtrl.accountPending(account)"></i>
+            <i class="fa fa-check-square-o" aria-hidden="true"  ng-show="emailSettingCtrl.accountRunning(account)"></i>
+            <i class="fa fa-exclamation-triangle" aria-hidden="true"  ng-show="emailSettingCtrl.accountFailed(account)"></i>
+            <i class="fa fa-stop-circle-o" aria-hidden="true"   ng-show="emailSettingCtrl.accountStopped(account)"></i>
+          </div>
+          <div class="btn-group" role="group">
             <button type="button" class="btn btn-default" ng-show="emailSettingCtrl.isExistingAccount(account)"
                     ng-click="emailSettingCtrl.updateAccount(account)" ng-disabled="!emailSettingCtrl.isAccountChanged(account)">Update</button>
           </div>
@@ -14,17 +21,12 @@
             <button type="button" class="btn btn-default" ng-hide="emailSettingCtrl.isExistingAccount(account)"
                     ng-click="emailSettingCtrl.saveAccount(account)" ng-disabled="!emailSettingCtrl.isAccountChanged(account)">Save</button>
           </div>
-          <div class="btn-group" role="group">
-            <button type="button" class="btn btn-default" ng-click="emailSettingCtrl.testAccount(account)">Test Connection
-              <i class="fa fa-cog fa-spin"    aria-hidden="true"  ng-show="emailSettingCtrl.testAccountPending(account)"></i>
-              <i class="fa fa-check-square-o" aria-hidden="true"  ng-show="emailSettingCtrl.testAccountGood(account)"></i>
-              <i class="fa fa-times"          aria-hidden="true"  ng-show="emailSettingCtrl.testAccountFailed(account)"></i></button>
+
+          <div class="btn-group" role="group" ng-hide="emailSettingCtrl.accountRunning(account)" ng-click="emailSettingCtrl.monitorAccount(account, true)">
+            <button type="button" class="btn btn-default"> Start Monitoring</button>
           </div>
-          <div class="btn-group" role="group" ng-hide="account.monitoring || !emailSettingCtrl.isExistingAccount(account)" ng-click="emailSettingCtrl.monitorAccount(account, true)">
-            <button type="button" class="btn btn-default"><i class="fa fa-cog" aria-hidden="true"></i> Start Monitoring</button>
-          </div>
-          <div class="btn-group" role="group" ng-show="account.monitoring" ng-click="emailSettingCtrl.monitorAccount(account, false)">
-            <button type="button" class="btn btn-default"><i class="fa fa-cog fa-spin" aria-hidden="true"></i> Stop Monitoring</button>
+          <div class="btn-group" role="group" ng-show="emailSettingCtrl.accountRunning(account)" ng-click="emailSettingCtrl.monitorAccount(account, false)">
+            <button type="button" class="btn btn-default"> Stop Monitoring</button>
           </div>
           <div class="btn-group pull-right" role="group" ng-click="emailSettingCtrl.deleteAccount(account)" ng-show="emailSettingCtrl.isExistingAccount(account)">
             <button type="button" class="btn btn-danger ">Delete</button>

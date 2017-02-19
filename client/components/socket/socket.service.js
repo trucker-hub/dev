@@ -23,7 +23,7 @@ function Socket(socketFactory) {
 
     listen(modelName, cb) {
       socket.on(`${modelName}:general`, function(data) {
-        console.log("received an event", data);
+        //console.log("received an event", data);
         cb(data);
       });
     },

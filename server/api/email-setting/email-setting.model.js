@@ -11,7 +11,7 @@ var EmailSettingSchema = new mongoose.Schema({
   search: String,
   tls: Boolean,
   debugging: Boolean,
-  monitoring: Boolean
+  monitoring: { status: String }
 });
 
 export default mongoose.model('EmailSetting', EmailSettingSchema);
