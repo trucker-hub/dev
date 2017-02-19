@@ -12,11 +12,6 @@
 
 import jsonpatch from 'fast-json-patch';
 import Email from './email.model';
-import MailClient from '../../components/imap/imap-client';
-
-var client;
-
-var clients = new Map();
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -126,111 +121,10 @@ export function destroy(req, res) {
     .catch(handleError(res));
 }
 
-var saveEmail = function (email) {
-  try {
-    Email.findOneAndUpdate({messageId: email.messageId + ""}, email,
-      {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: false}).exec()
-      .then(function () {
-        console.log("email has been saved");
-      });
-  } catch (e) {
-    print(e);
-  }
-};
 
-export function status(req, res) {
 
-  //console.log("listener status", mailListenerInbox.imap.state);
-  if (client && client.connected) {
-    return res.status(200).send("STARTED");
-  } else {
-    return res.status(200).send("STOPPED");
-  }
-}
 
-export function start(req, res) {
 
-  //mailListenerInbox = MailListener.createListener("jinbo.chen@gmail.com", "chunfeng2", "imap.gmail.com", 993, "Inbox", ["UNSEEN"]);
-  client = new MailClient({
-      username: "jinbo.chen@gmail.com",
-      password: "chunfeng2",
-      host: "imap.gmail.com",
-      port: 993, // imap port
-      mailbox: "Inbox", // mailbox to monitor
-      searchFilter: ['UNSEEN'],
-      options: {
-        tls: true,
-        tlsOptions: {rejectUnauthorized: false},
-        debug: true,
-        connTimeout: 10000, // Default by node-imap
-        authTimeout: 5000, // Default by node-imap,
-        keepConnected: false
-      }
-    },
-    function (email) {
-      saveEmail(email);
-    },
-    function (email) {
-      saveEmail(email);
-    },
-    function (email) {
-      saveEmail(email);
-    }
-  );
-
-  client.start();
-  return res.status(200).send("STARTED");
-
-}
-
-export function test(req, res) {
-
-  var email = req.body;
-
-  var c = new MailClient({
-      username: email.username,
-      password: email.password,
-      host: email.host,
-      port: email.port, // imap port
-      mailbox: email.mailbox, // mailbox to monitor
-      searchFilter: ['UNSEEN'],
-      options: {
-        tls: email.tls,
-        tlsOptions: {rejectUnauthorized: false},
-        debug: email.debugging,
-        connTimeout: 10000, // Default by node-imap
-        authTimeout: 5000, // Default by node-imap,
-        keepConnected: false
-      }
-    },
-    function (email) {
-      console.log("new email received");
-    },
-    function (email) {
-      console.log("email updated");
-    },
-    function (email) {
-      console.log("email deleted");
-    }
-  );
-
-  c.on("server:connected", function () {
-    //connection is good
-    c.stop();
-    return res.status(200).json({"status": true});
-  });
-  c.on("error", function (err) {
-    console.error("err", err);
-    return res.status(200).json({"status": false});
-  });
-  c.start();
-
-}
-
-export function stop(req, res) {
-  client.stop();
-  return res.status(200).send("STOPPED");
-}
 
 
 

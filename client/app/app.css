@@ -40,6 +40,8 @@
   padding: 0.2em 0;
 }
 
+body { padding-top: 70px; padding-bottom: 70px;}
+
 
 /* Component styles are injected through gulp */
 /* inject:css */

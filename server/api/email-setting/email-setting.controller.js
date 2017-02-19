@@ -13,11 +13,13 @@
 import jsonpatch from 'fast-json-patch';
 import EmailSetting from './email-setting.model';
 import EmailSettingEvents from './email-setting.events';
-
+import Email from '../email/email.model';
 import MailClient from '../../components/imap/imap-client';
+
 var clients = new Map();
 
 let MSG_TYPE = "monitoring";
+let MSG_EVENT = "emailSetting:general";
 
 function respondWithResult(res, statusCode) {
   statusCode = statusCode || 200;
@@ -145,7 +147,6 @@ function privateUpdate(account) {
     setDefaultsOnInsert: true,
     runValidators: true
   }).exec()
-
     .then(function() {
       console.log("private update is good");
     })
@@ -157,79 +158,91 @@ function privateUpdate(account) {
 function event(status, email) {
   return {"status": status, type: MSG_TYPE, username: email.username};
 }
-function monitor(email, starting, res) {
 
-  var client = clients.get(email.username);
+var saveEmail = function (email) {
+  try {
+    Email.findOneAndUpdate({messageId: email.messageId + ""}, email,
+      {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: false}).exec()
+      .then(function () {
+        console.log("email has been saved");
+      });
+  } catch (e) {
+    print(e);
+  }
+};
 
-  console.log("IMAP client status:" + email.username, email.monitoring);
+function monitor(account, startMonitoring, res) {
+
+  var client = clients.get(account.username);
+
+  console.log("IMAP client status:" + account.username, account.monitoring);
   if (client && client.connected) {
-    if (starting) {
-      return res.status(200).json(event("running", email));
+    if (startMonitoring) {
+      return res.status(200).json(event("running", account));
     } else {
       client.imap.destroy();
-      clients.delete(email.username);
+      clients.delete(account.username);
       client.connected = false;
-      return res.status(200).json(event("stopped", email));
+      return res.status(200).json(event("stopped", account));
     }
   } else if (client && !client.connected) {
-    if (starting) {
+    if (startMonitoring) {
       client.start();
-      return res.status(200).json(event("pending", email));
+      return res.status(200).json(event("pending", account));
     } else {
-      return res.status(200).json(event("running", email));
+      return res.status(200).json(event("running", account));
     }
   } else {
 
     client = new MailClient({
-        username: email.username,
-        password: email.password,
-        host: email.host,
-        port: email.port, // imap port
-        mailbox: email.mailbox, // mailbox to monitor
+        username: account.username,
+        password: account.password,
+        host: account.host,
+        port: account.port, // imap port
+        mailbox: account.mailbox, // mailbox to monitor
         searchFilter: ['UNSEEN'],
         options: {
-          tls: email.tls,
+          tls: account.tls,
           tlsOptions: {rejectUnauthorized: false},
-          debug: email.debugging,
+          debug: account.debugging,
           connTimeout: 10000, // Default by node-imap
           authTimeout: 5000, // Default by node-imap,
           keepConnected: false
         }
       },
       function (email) {
-        console.log("new email received");
+        saveEmail(email);
       },
       function (email) {
-        console.log("email updated");
+        saveEmail(email);
       },
       function (email) {
-        console.log("email deleted");
+        saveEmail(email);
       }
     );
-    clients.set(email.username, client);
+
+    clients.set(account.username, client);
     client.on("server:connected", function () {
       //connection is good
-      email.monitoring.status='running';
-      privateUpdate(email);
-      EmailSettingEvents.emit("emailSetting:general", event("running", email));
+      account.monitoring.status='running';
+      privateUpdate(account);
+      EmailSettingEvents.emit(MSG_EVENT, event("running", account));
     });
     client.on("error", function (err) {
       console.error("err", err);
-      if(starting) {
-        email.monitoring.status='failed';
-        privateUpdate(email);
-        EmailSettingEvents.emit("emailSetting:general", event("failed", email));
+      if(startMonitoring) {
+        account.monitoring.status='failed';
+        privateUpdate(account);
+        EmailSettingEvents.emit(MSG_EVENT, event("failed", account));
       }else {
-        email.monitoring.status='stopped';
-        privateUpdate(email);
-        EmailSettingEvents.emit("emailSetting:general", event("stopped", email));
+        account.monitoring.status='stopped';
+        privateUpdate(account);
+        EmailSettingEvents.emit(MSG_EVENT, event("stopped", account));
       }
-
     });
 
     client.start();
-
-    return res.status(200).json(event("pending", email));
+    return res.status(200).json(event("pending", account));
   }
 }
 
