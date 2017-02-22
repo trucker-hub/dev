@@ -19,15 +19,7 @@ export class EmailComponent {
       socket.unsyncUpdates('email');
     });
   }
-
-  checkMonitoringStatus() {
-    this.$http.get('/api/emails/monitoring/status')
-      .then(response => {
-        console.log("response", response.data);
-        this.monitoring = (response.data=='STARTED');
-      });
-  }
-
+  
   startMonitoring () {
     console.log("clicked to start monitoring");
     this.$http.post('/api/emails/monitoring/start', {})
@@ -56,7 +48,6 @@ export class EmailComponent {
   }
 
   $onInit() {
-    this.checkMonitoringStatus();
     this.getEmails();
   }
 }

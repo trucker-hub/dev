@@ -71,10 +71,28 @@ function handleError(res, statusCode) {
   };
 }
 
+function syncStatusFunc(res) {
+  return function (accounts) {
+    accounts.forEach(function (account, i) {
+      var client = clients.get(account.username);
+      if (client) {
+        if (client.connected) {
+          account.monitoiring = {'status': 'running'};
+        } else {
+          account.monitoring = {'status': 'stopped'};
+        }
+      } else {
+        account.monitoiring = {"status": ''};
+      }
+    });
+    return accounts;
+  }
+}
+
 // Gets a list of EmailSettings
 export function index(req, res) {
   return EmailSetting.find().exec()
-    .then(respondWithResult(res))
+    .then(syncStatusFunc(res)).then(respondWithResult(res))
     .catch(handleError(res));
 }
 
@@ -262,14 +280,6 @@ function syncStatus(account) {
   privateUpdate(account);
 }
 
-export function status(req, res) {
-
-  var accounts = req.body;
-  for(var i=0; i < accounts.length; ++i) {
-    syncStatus(accounts[i]);
-  }
-  return res.status(200).json(accounts);
-}
 export function startMonitoring(req, res) {
   var account = req.body;
   monitor(account, true, res);
