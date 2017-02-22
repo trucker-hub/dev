@@ -171,6 +171,8 @@ var saveEmail = function (email) {
   }
 };
 
+
+
 function monitor(account, startMonitoring, res) {
 
   var client = clients.get(account.username);
@@ -246,6 +248,28 @@ function monitor(account, startMonitoring, res) {
   }
 }
 
+function syncStatus(account) {
+  var client = clients.get(account.username);
+  if(client) {
+    if(client.connected) {
+      account.monitoiring = {'status': 'running'};
+    }else {
+      account.monitoring = {'status': 'stopped'};
+    }
+  }else {
+    account.monitoiring = {"status": ''};
+  }
+  privateUpdate(account);
+}
+
+export function status(req, res) {
+
+  var accounts = req.body;
+  for(var i=0; i < accounts.length; ++i) {
+    syncStatus(accounts[i]);
+  }
+  return res.status(200).json(accounts);
+}
 export function startMonitoring(req, res) {
   var account = req.body;
   monitor(account, true, res);

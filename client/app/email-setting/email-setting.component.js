@@ -39,8 +39,17 @@ export class EmailSettingComponent {
     this.$http.get('/api/email-settings')
       .then(response => {
         self.emailAccounts = response.data;
-        console.log("email accounts", self.emailAccounts);
+        self.syncEmailAccountMonitoringStatus();
       });
+  }
+
+  syncEmailAccountMonitoringStatus() {
+    var self = this;
+    this.$http.post('/api/email-settings/status', self.emailAccounts)
+        .then(response => {
+          self.emailAccounts = response.data;
+          console.log("email accounts", self.emailAccounts);
+        });
   }
 
   isExistingAccount(account) {

@@ -13,5 +13,6 @@ router.patch('/:id', controller.patch);
 router.delete('/:id', controller.destroy);
 router.post('/start', controller.startMonitoring);
 router.post('/stop', controller.stopMonitoring);
+router.post('/status', controller.status);
 
 module.exports = router;
