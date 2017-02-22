@@ -19,25 +19,6 @@ export class EmailComponent {
       socket.unsyncUpdates('email');
     });
   }
-  
-  startMonitoring () {
-    console.log("clicked to start monitoring");
-    this.$http.post('/api/emails/monitoring/start', {})
-      .then(response => {
-        console.log("response", response);
-        this.socket.syncUpdates('email', this.emails);
-        this.monitoring = true;
-      });
-  }
-
-  stopMonitoring () {
-    console.log("clicked to stop monitoring");
-    this.$http.post('/api/emails/monitoring/stop', {})
-      .then(response => {
-        console.log("response", response);
-        this.monitoring = false;
-      });
-  }
 
   getEmails () {
     this.$http.get('/api/emails/').then(response => {

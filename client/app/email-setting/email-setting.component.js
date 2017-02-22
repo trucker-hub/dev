@@ -39,10 +39,8 @@ export class EmailSettingComponent {
     this.$http.get('/api/email-settings')
       .then(response => {
         self.emailAccounts = response.data;
-        //self.syncEmailAccountMonitoringStatus();
       });
   }
-
 
   isExistingAccount(account) {
     return account.hasOwnProperty('_id');
