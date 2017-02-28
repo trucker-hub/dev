@@ -5,6 +5,11 @@ import mongoose from 'mongoose';
 var attachmentType = new mongoose.Schema({ name: String, type:String, size: Number});
 var addressSchema = new mongoose.Schema({ address: String, name: String });
 var updateSchema = new mongoose.Schema({ flags: [String], date: Date });
+var metricsSchema = new mongoose.Schema({
+  readInMinutes: Number,
+  repliedInMinutes: Number,
+  deletedInMinutes: Number
+});
 
 var EmailSchema = new mongoose.Schema({
   from: [ addressSchema ],
@@ -26,7 +31,7 @@ var EmailSchema = new mongoose.Schema({
   text: String,
   html: String,
   attachments: [ attachmentType ],
-  active: Boolean
+  metrics: metricsSchema
 });
 
 export default mongoose.model('Email', EmailSchema);

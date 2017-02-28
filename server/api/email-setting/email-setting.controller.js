@@ -47,9 +47,9 @@ function removeEntity(res) {
   return function (entity) {
     if (entity) {
       return entity.remove()
-        .then(() => {
-          res.status(204).end();
-        });
+          .then(() => {
+            res.status(204).end();
+          });
     }
   };
 }
@@ -73,18 +73,22 @@ function handleError(res, statusCode) {
 
 function syncStatusFunc(res) {
   return function (accounts) {
-    accounts.forEach(function (account, i) {
+    accounts = accounts.map(function (account, i) {
+      //console.log('iterate each account', account);
       var client = clients.get(account.username);
       if (client) {
         if (client.connected) {
-          account.monitoiring = {'status': 'running'};
+          account.monitoring = {'status': 'running'};
         } else {
           account.monitoring = {'status': 'stopped'};
         }
       } else {
-        account.monitoiring = {"status": ''};
+        account.monitoring = {"status": ''};
       }
+      //console.log('iterate each account', account);
+      return account;
     });
+    //console.log('iterate each accounts', accounts);
     return accounts;
   }
 }
@@ -92,23 +96,23 @@ function syncStatusFunc(res) {
 // Gets a list of EmailSettings
 export function index(req, res) {
   return EmailSetting.find().exec()
-    .then(syncStatusFunc(res)).then(respondWithResult(res))
-    .catch(handleError(res));
+      .then(syncStatusFunc(res)).then(respondWithResult(res))
+      .catch(handleError(res));
 }
 
 // Gets a single EmailSetting from the DB
 export function show(req, res) {
   return EmailSetting.findById(req.params.id).exec()
-    .then(handleEntityNotFound(res))
-    .then(respondWithResult(res))
-    .catch(handleError(res));
+      .then(handleEntityNotFound(res))
+      .then(respondWithResult(res))
+      .catch(handleError(res));
 }
 
 // Creates a new EmailSetting in the DB
 export function create(req, res) {
   return EmailSetting.create(req.body)
-    .then(respondWithResult(res, 201))
-    .catch(handleError(res));
+      .then(respondWithResult(res, 201))
+      .catch(handleError(res));
 }
 
 // Upserts the given EmailSetting in the DB at the specified ID
@@ -122,9 +126,8 @@ export function upsert(req, res) {
     setDefaultsOnInsert: true,
     runValidators: true
   }).exec()
-
-    .then(respondWithResult(res))
-    .catch(handleError(res));
+      .then(respondWithResult(res))
+      .catch(handleError(res));
 }
 
 // Updates an existing EmailSetting in the DB
@@ -133,44 +136,29 @@ export function patch(req, res) {
     delete req.body._id;
   }
   return EmailSetting.findById(req.params.id).exec()
-    .then(handleEntityNotFound(res))
-    .then(patchUpdates(req.body))
-    .then(respondWithResult(res))
-    .catch(handleError(res));
+      .then(handleEntityNotFound(res))
+      .then(patchUpdates(req.body))
+      .then(respondWithResult(res))
+      .catch(handleError(res));
 }
 
 // Deletes a EmailSetting from the DB
 export function destroy(req, res) {
 
   return EmailSetting.findById(req.params.id).exec(function(err, entity) {
-    if(err) console.error("error", err);
-    console.log("about to delte this account", entity);
-    //let's stop the client first
-    var client = clients.get(entity.username);
-    if(client && client.connected) {
-      client.connected = false;
-      clients.delete(email.username);
-      client.imap.destroy();
-    }
-  })
-    .then(handleEntityNotFound(res))
-    .then(removeEntity(res))
-    .catch(handleError(res));
-}
-
-function privateUpdate(account) {
-  return EmailSetting.findOneAndUpdate({_id: account._id}, account, {
-    new: true,
-    upsert: true,
-    setDefaultsOnInsert: true,
-    runValidators: true
-  }).exec()
-    .then(function() {
-      console.log("private update is good");
-    })
-    .catch(function() {
-      console.log("private update failed");
-    });
+        if(err) console.error("error", err);
+        //console.log("about to delte this account", entity);
+        //let's stop the client first
+        var client = clients.get(entity.username);
+        if(client && client.connected) {
+          client.connected = false;
+          clients.delete(email.username);
+          client.imap.destroy();
+        }
+      })
+      .then(handleEntityNotFound(res))
+      .then(removeEntity(res))
+      .catch(handleError(res));
 }
 
 function event(status, email) {
@@ -180,16 +168,14 @@ function event(status, email) {
 var saveEmail = function (email) {
   try {
     Email.findOneAndUpdate({messageId: email.messageId + ""}, email,
-      {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: false}).exec()
-      .then(function () {
-        console.log("email has been saved");
-      });
+        {new: true, upsert: true, setDefaultsOnInsert: true, runValidators: false}).exec()
+        .then(function () {
+          console.log("email has been saved");
+        });
   } catch (e) {
     print(e);
   }
 };
-
-
 
 function monitor(account, startMonitoring, res) {
 
@@ -215,48 +201,45 @@ function monitor(account, startMonitoring, res) {
   } else {
 
     client = new MailClient({
-        username: account.username,
-        password: account.password,
-        host: account.host,
-        port: account.port, // imap port
-        mailbox: account.mailbox, // mailbox to monitor
-        searchFilter: ['UNSEEN'],
-        options: {
-          tls: account.tls,
-          tlsOptions: {rejectUnauthorized: false},
-          debug: account.debugging,
-          connTimeout: 10000, // Default by node-imap
-          authTimeout: 5000, // Default by node-imap,
-          keepConnected: false
+          username: account.username,
+          password: account.password,
+          host: account.host,
+          port: account.port, // imap port
+          mailbox: account.mailbox, // mailbox to monitor
+          searchFilter: ['UNSEEN'],
+          options: {
+            tls: account.tls,
+            tlsOptions: {rejectUnauthorized: false},
+            debug: account.debugging,
+            connTimeout: 10000, // Default by node-imap
+            authTimeout: 5000, // Default by node-imap,
+            keepConnected: false
+          }
+        },
+        function (email) {
+          saveEmail(email);
+        },
+        function (email) {
+          saveEmail(email);
+        },
+        function (email) {
+          saveEmail(email);
         }
-      },
-      function (email) {
-        saveEmail(email);
-      },
-      function (email) {
-        saveEmail(email);
-      },
-      function (email) {
-        saveEmail(email);
-      }
     );
 
     clients.set(account.username, client);
     client.on("server:connected", function () {
       //connection is good
-      account.monitoring.status='running';
-      privateUpdate(account);
+      account.monitoring= {'status': 'running'};
       EmailSettingEvents.emit(MSG_EVENT, event("running", account));
     });
     client.on("error", function (err) {
       console.error("err", err);
       if(startMonitoring) {
-        account.monitoring.status='failed';
-        privateUpdate(account);
+        account.monitoring= {'status': 'failed'};
         EmailSettingEvents.emit(MSG_EVENT, event("failed", account));
       }else {
-        account.monitoring.status='stopped';
-        privateUpdate(account);
+        account.monitoring = {'status': 'stopped'};
         EmailSettingEvents.emit(MSG_EVENT, event("stopped", account));
       }
     });
@@ -266,19 +249,6 @@ function monitor(account, startMonitoring, res) {
   }
 }
 
-function syncStatus(account) {
-  var client = clients.get(account.username);
-  if(client) {
-    if(client.connected) {
-      account.monitoiring = {'status': 'running'};
-    }else {
-      account.monitoring = {'status': 'stopped'};
-    }
-  }else {
-    account.monitoiring = {"status": ''};
-  }
-  privateUpdate(account);
-}
 
 export function startMonitoring(req, res) {
   var account = req.body;

@@ -38,6 +38,7 @@ export class EmailSettingComponent {
     var self = this;
     this.$http.get('/api/email-settings')
       .then(response => {
+        console.log("accounts=", response.data);
         self.emailAccounts = response.data;
       });
   }

@@ -87,14 +87,60 @@ function MailClient(settings, newCB, updateCB, delCB) {
     self.newCB(email);
   });
 
+  //Message Sequence Number: The relative position from the first message in the mailbox
+  //See more at: http://geek.michaelgrace.org/2012/02/imap-email-uid-vs-message-sequence-number/
+
   this.on('mail-update', function(uid, seqno, attributes) {
     var email = self.cached.get(seqno);
     if(email) {
       email.history.push({flags: attributes.flags, date: new Date()});
+      computeMetrics(email);
       console.log("email["+ email.subject + "] flags got updated");
+      console.log("email metrics", email.metrics);
       self.updateCB(email);
+    }else {
+      console.log("local cache does not this email any more", email.subject);
     }
   });
+}
+
+/**
+ *
+ if (flag == '\\Deleted') return 'D';
+ else if (flag == "\\Seen") return 'R';
+ else if (flag == '\\Flagged') return 'F';
+ else if (flag == '\\Answered') return 'A';
+ * @param flags
+ */
+
+function deltaInMinutes(startDate, endDate) {
+  return  Math.round((endDate.getTime() - startDate.getTime())/60000);
+}
+
+function computeMetrics(email) {
+
+  var startDate = email.date;
+  var history = email.history;
+
+  if(!email.hasOwnProperty('metrics')) {
+    email.metrics = {
+      readInMinutes: null,
+      repliedInMinutes: null,
+      deletedInMinutes: null
+    }
+  }
+
+  for(var i=0; i < history.length; ++i) {
+    var event = history[i];
+    if(!email.metrics.readInMinutes && event.flags.indexOf('\\Seen')!=-1) {
+      email.metrics.readInMinutes = deltaInMinutes(startDate, event.date);
+    } else if (!email.metrics.repliedInMinutes && event.flags.indexOf('\\Answered')!=-1) {
+      email.metrics.repliedInMinutes = deltaInMinutes(startDate, event.date);
+    } else if (!email.metrics.deletedInMinutes && event.flags.indexOf('\\Deleted')!=-1) {
+      email.metrics.deletedInMinutes = deltaInMinutes(startDate, event.date);
+    }
+  }
+  console.log("email metrics", email.metrics);
 }
 
 util.inherits(MailClient, EventEmitter);
@@ -107,6 +153,25 @@ MailClient.prototype.start = function() {
 MailClient.prototype.stop = function() {
   this.imap.end();
 };
+
+function updateSeqnoAfterDeleted(cached, seqno) {
+
+  var updated = [];
+  var i;
+  cached.remove(seqno);
+  cached.forEach(function(key, value) {
+    if(key > seqno) updated.push(value);
+  });
+
+  for(i=0; i < updated.length; ++i) {
+    cached.remove(updated[i].seqno);
+  }
+
+  for(i=0; i < updated.length; ++i) {
+    cached.put(updated[i].seqno-1, updated[i]);
+  }
+
+}
 
 function imapReady(self) {
 
@@ -126,6 +191,8 @@ function imapReady(self) {
         var email = self.cached.get(seqno);
         if(email) {
           email.history.push({flags: ['\\Deleted'], date: new Date()});
+          computeMetrics(email);
+          updateSeqnoAfterDeleted(self.cached, seqno);
           console.log("email["+ email.subject + "] got deleted");
           self.delCB(email);
         }else {
@@ -169,10 +236,10 @@ function updateEmail(self, uid) {
 
 function fetchEmail(self, uid) {
   var f = self.imap.fetch(uid, { bodies: '', markSeen: false });
-  console.log("Fetch new email for UID=", uid);
+  //console.log("Fetch new email for UID=", uid);
   f.on('message', function(msg, seqno) {
     //console.log("email received", seqno);
-    console.log("SEGNO=", seqno);
+    //console.log("SEGNO=", seqno);
     var parser = new MailParser(self.mailParserOptions);
     var attributes = null;
     var emlbuffer = new Buffer('');

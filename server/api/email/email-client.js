@@ -34,15 +34,15 @@ var client = new MailClient({
       }},
 
     function(email) {
-      console.log("new email=", email.subject, email.seqno, email.attachments);
+      console.log("CB: new email=", email.subject, email.seqno, email.attachments);
     },
 
     function(email) {
-      console.log("email update=", email.subject, " update history=", email.history);
+      console.log("CB: email update=", email.subject, " update history=", email.history);
     },
 
     function(email) {
-      console.log("email deleted=", email.subject, " history=", email.history);
+      console.log("CB: email deleted=", email.subject, " history=", email.history);
     }
 );
 

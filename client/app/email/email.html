@@ -6,16 +6,16 @@
       <tr>
         <th>From</th>
         <th>Subject</th>
-        <th>History</th>
         <th>To</th>
         <th>CC</th>
+        <th>Read in Minutes</th>
       </tr>
       <tr ng-repeat="email in emailCtrl.emails">
         <td>{{email.from | emailAddress }}</td>
         <td>{{email.subject}}</td>
-        <td>{{email.history | emailHistory }}</td>
         <td>{{email.to | emailAddress}}</td>
         <td>{{email.cc}}</td>
+        <td>{{email.metrics.readInMinutes}}</td>
       </tr>
     </table>
   </div>
