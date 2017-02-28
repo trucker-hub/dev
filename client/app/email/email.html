@@ -8,14 +8,14 @@
         <th>Subject</th>
         <th>To</th>
         <th>CC</th>
-        <th>Read in Minutes</th>
+        <th>Read/Replied/Deleted in Minutes</th>
       </tr>
       <tr ng-repeat="email in emailCtrl.emails">
         <td>{{email.from | emailAddress }}</td>
         <td>{{email.subject}}</td>
         <td>{{email.to | emailAddress}}</td>
         <td>{{email.cc}}</td>
-        <td>{{email.metrics.readInMinutes}}</td>
+        <td>{{email.metrics.readInMinutes}}/{{email.metrics.repliedInMinutes}}/{{email.metrics.deletedInMinutes}}</td>
       </tr>
     </table>
   </div>
