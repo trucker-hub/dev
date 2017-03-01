@@ -1,25 +1,23 @@
 <div class="container">
-
-  <div class="col-lg-12">
-    <h2 class="page-header">Emails <span class="badge">{{emailCtrl.emails.length}}</span></h2>
-    <table class="table table-striped">
-      <tr>
-        <th>From</th>
-        <th>Subject</th>
-        <th>To</th>
-        <th>CC</th>
-        <th>Read/Replied/Deleted in Minutes</th>
-      </tr>
-      <tr ng-repeat="email in emailCtrl.emails">
-        <td>{{email.from | emailAddress }}</td>
-        <td>{{email.subject}}</td>
-        <td>{{email.to | emailAddress}}</td>
-        <td>{{email.cc}}</td>
-        <td>{{email.metrics.readInMinutes}}/{{email.metrics.repliedInMinutes}}/{{email.metrics.deletedInMinutes}}</td>
-      </tr>
-    </table>
-  </div>
-  <div>
-    <br>
-  </div>
+  <h2 class="page-header">Emails <span class="badge">{{emailCtrl.emails.length}}</span></h2>
+  <table class="table table-striped">
+    <tr>
+      <th>From</th>
+      <th>Subject</th>
+      <th>To</th>
+      <th>CC</th>
+      <th>Read/Replied/Deleted in Minutes</th>
+      <th>Reference</th>
+      <th>Message ID</th>
+    </tr>
+    <tr ng-repeat="email in emailCtrl.emails">
+      <td>{{email.from | emailAddress }}</td>
+      <td>{{email.subject}}</td>
+      <td>{{email.to | emailAddress}}</td>
+      <td>{{email.cc}}</td>
+      <td>{{email.metrics.readInMinutes}}/{{email.metrics.repliedInMinutes}}/{{email.metrics.deletedInMinutes}}</td>
+      <td>{{email.references}}</td>
+      <td>{{email.messageId}}</td>
+    </tr>
+  </table>
 </div>
